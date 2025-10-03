@@ -3,5 +3,13 @@
 version = 4
 
 [[package]]
-name = "anchor-kit"
+name = "anchor-kit-core"
+version = "0.1.0"
+
+[[package]]
+name = "anchor-kit-winit"
+version = "0.1.0"
+
+[[package]]
+name = "winit-simple"
 version = "0.1.0"

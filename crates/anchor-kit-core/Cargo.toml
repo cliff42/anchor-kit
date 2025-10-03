@@ -1,5 +1,5 @@
 [package]
-name = "wgpu_gui"
+name = "anchor-kit-core"
 version = "0.1.0"
 edition = "2021"
 
