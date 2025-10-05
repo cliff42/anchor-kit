@@ -19,7 +19,7 @@ crates
     - lib.rs (core layout functionality etc.)
   - anchor-kit-winit (winit integration)
   - anchor-kit-wpgu (wgpu integration)
-- examples
+examples
   - winit-example
   - wpgu-example
 Cargo.toml (workspace cargo file)
