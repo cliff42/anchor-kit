@@ -48,7 +48,12 @@ The second core concept of the adjustable layout system will be the concept of f
 
 ### Tentative plan
 
+Our initial plan is to first conduct some research into possible ways to implement the layout system and find potential crates that can assist us in developing these systems. Once we figure out the architecture of our code we plan to build out a core library with a few primitives, alongside integration with wgpu and winit to demonstrate our libraries in action. The process should be simplified by our focus on non-interactive GUIs, so we would not need to worry about event handling or complex internal state management.
+
 #### repo structure (from top level)
+
+Below is a tentative breakdown of how we plan to structure this repo. The first section, crates, will contain the core aspects of our library. This will contain the layout system implementation and the various primitives that can be used within it. Additionally it will contain the integrations with winit and wpgu. Examples will, as the name suggests, provide examples of our code being used with the integrated rendering pipelines.
+
 ```
 crates 
   - anchor-kit-core
@@ -66,3 +71,6 @@ Cargo.toml (workspace cargo file)
 README.md
 ... 
 ```
+#### Responsibility Breakdown
+
+Responsibilities have not yet been clearly defined, as we are still designing the precise architecture together. However, we foresee splitting the work along the lines of the main layout system design and the integration to existing rendering pipelines. Should one of these prove easier than the other, then assistance would be leveraged to the other part of the project before finally creating examples with each rendering pipeline.
