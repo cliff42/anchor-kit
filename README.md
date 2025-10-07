@@ -74,3 +74,11 @@ README.md
 #### Responsibility Breakdown
 
 Responsibilities have not yet been clearly defined, as we are still designing the precise architecture together. However, we foresee splitting the work along the lines of the main layout system design and the integration to existing rendering pipelines. Should one of these prove easier than the other, then assistance would be leveraged to the other part of the project before finally creating examples with each rendering pipeline.
+
+#### Basic Timeline of Goals
+```
+1) Conduct research into implementaion methods for the layout system and possible crates that would be useful to use
+2) Jointly develop the project architecture
+3) Split development responsibilities, most likely between rendering pipeline integration and layout system
+4) Develop demonstration examples to show the framework in action with integrated rendering pipelines
+```
