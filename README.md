@@ -40,9 +40,9 @@ These anchor points will be laid out as follows:
 
 ||||
 | :---        |    :----:   |          ---: |
-|top-right|top-middle|top-left|
-|middle-right|middle|middle-left|
-|bottom-right|bottom-middle|bottom-left| 
+|top-left|top-middle|top-right|
+|middle-left|middle-center|middle-right|
+|bottom-left|bottom-middle|bottom-right| 
 
 The second core concept of the adjustable layout system will be the concept of flexible grids. These grids will be structured as a flexible, easy-to-understand system that allows users to arrange UI elements *within* the anchor point blocks. The grid systems themselves will provide responsiveness for the elements within them, such that general rendered layouts will remain in the same structure and maintain spacing and centring even in the case that data changes between frames (for example, a numeric data field within a pill goes from 10 -> 100,000 between frames and the margins have to be resized). The core system of these grid layouts will be heavily inspired by [Bootstrap’s grid system](https://getbootstrap.com/docs/5.0/layout/grid/).
 
