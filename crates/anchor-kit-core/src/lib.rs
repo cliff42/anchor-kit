@@ -74,9 +74,7 @@ impl<'a> UI<'a> {
         F: FnOnce(&mut UI),
     {
         let mut anchor_element = Element::new(element::ElementType::Anchor(anchor_position), size);
-        
-        f(&mut UI {current_element: &mut anchor_element});
-
+        f(&mut UI {current_element: &mut anchor_element}); // handle all child elements of the anchor position
         self.current_element.children.push(anchor_element);
     }
 

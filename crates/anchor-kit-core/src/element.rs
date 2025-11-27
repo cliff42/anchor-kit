@@ -13,7 +13,7 @@ pub enum ElementType {
 pub struct Element {
     pub(crate) _type: ElementType, // 'type' is a reserved word in rust
     pub(crate) size: [u32; 2],
-    pub(crate) position: Option<[u32; 2]>, // element positions are None until the layout pass
+    pub(crate) frame_position: Option<[u32; 2]>, // element positions are None until the layout pass
     pub(crate) children: Vec<Element>,
 }
 
@@ -22,7 +22,7 @@ impl Element {
         Self {
             _type: element_type,
             size,
-            position: None,
+            frame_position: None,
             children: Vec::new(),
         }
     }
