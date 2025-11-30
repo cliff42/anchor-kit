@@ -30,10 +30,8 @@ fn handle_element_layout(
         ElementType::Text(_) => {
             handle_text_element(element, allocated_origin, allocated_size);
         }
-        ElementType::FlexRow => {
-            handle_flex_row(element, allocated_origin, allocated_size)
-        } // TODO: implement
-        ElementType::Panel => {}   // TODO: implement
+        ElementType::FlexRow => handle_flex_row(element, allocated_origin, allocated_size), // TODO: implement
+        ElementType::Panel => {} // TODO: implement
     }
 }
 
@@ -101,12 +99,18 @@ fn handle_text_element(
 fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2], allocated_size: [u32; 2]) {
     let num_children = element.children.len();
 
-    let padding = 8; // TODO: this is a placeholder for now, it should be set by styling
+    let padding: u32 = 8; // TODO: this is a placeholder for now, it should be set by styling
 
     // for flex elements we want to split the allocated space into even sizes for each of the child elements
     let [aw, ah] = allocated_size;
+    let total_padding = if num_children > 1 {
+        (num_children - 1) as u32 * padding
+    } else {
+        0
+    };
+    let available_width_after_padding = aw.saturating_sub(total_padding as u32);
     let width_per_child = if num_children > 0 {
-        aw / num_children as u32 + padding
+        available_width_after_padding / num_children as u32
     } else {
         aw
     };
@@ -116,7 +120,7 @@ fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2], allocated_
 
     // left to right rendering order is assumed for now, but should be configurable in the future
     for (i, c) in element.children.iter_mut().enumerate() {
-        let curr_child_origin = [ax + width_per_child * i as u32, ay];
+        let curr_child_origin = [ax + (width_per_child + padding) * i as u32, ay];
         handle_element_layout(c, curr_child_origin, [width_per_child, height_per_child]);
     }
 }
