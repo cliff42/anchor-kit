@@ -6,6 +6,7 @@ pub enum ElementType {
     Anchor(AnchorPosition),
     Panel,
     Text(String),
+    FlexRow,
     // TODO: add things like flex col and flex row
 }
 
@@ -14,7 +15,7 @@ pub struct Element {
     pub(crate) _type: ElementType, // 'type' is a reserved word in rust
     pub(crate) size: [u32; 2],
     pub(crate) frame_position: Option<[u32; 2]>, // element positions are None until the layout pass
-    pub(crate) children: Vec<Element>,
+    pub(crate) children: Vec<Element>, // for now we will render all children first -> last = left -> right, but this could be configurable in future
 }
 
 impl Element {

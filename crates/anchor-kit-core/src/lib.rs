@@ -2,12 +2,12 @@ mod anchor;
 mod element;
 mod layout;
 mod primitives;
+mod render;
 
+use anchor::AnchorPosition;
 use element::Element;
 use layout::layout_pass;
-use primitives::rectangle::Rectangle;
-
-use crate::anchor::AnchorPosition;
+use render::{render_pass, RenderList};
 
 // TODO: origin (0,0) should be top-left
 
@@ -17,14 +17,9 @@ pub struct FrameInfo {
     pub time_ns: f32,   // TODO: should we have a struct for this? -> something like SystemTime?
 }
 
-#[derive(Clone, Default, Debug)]
-pub struct RenderList {
-    rectangles: Vec<Rectangle>,
-}
-
 // UIState stores the actual elements
 pub struct UIState {
-    root: Element
+    root: Element,
 }
 
 // UI is used for building the element tree with closures
@@ -56,13 +51,15 @@ impl UIState {
     {
         self.root.clear(); // clear the previous frame's element tree
 
-
-        f(&mut UI {current_element: &mut self.root});
+        f(&mut UI {
+            current_element: &mut self.root,
+        });
 
         let mut render_list = RenderList::default();
 
         // TODO: don't pass render_list here, it should be populated in another pass. layout_pass will just populate the element tree and each element's absolute positions relative to the window
-        layout_pass(&self.root, &frame_info, &mut render_list);
+        layout_pass(&mut self.root, &frame_info);
+        render_pass(&self.root, &mut render_list);
 
         render_list // TODO: output the render/ draw list to the actual winit or wgpu rendering code
     }
@@ -74,7 +71,9 @@ impl<'a> UI<'a> {
         F: FnOnce(&mut UI),
     {
         let mut anchor_element = Element::new(element::ElementType::Anchor(anchor_position), size);
-        f(&mut UI {current_element: &mut anchor_element}); // handle all child elements of the anchor position
+        f(&mut UI {
+            current_element: &mut anchor_element,
+        }); // handle all child elements of the anchor position
         self.current_element.children.push(anchor_element);
     }
 
@@ -84,9 +83,15 @@ impl<'a> UI<'a> {
         self.current_element.children.push(text_element);
     }
 
-    // pub fn flew_row() -> {
-
-    // }
+    pub fn flew_row<F>(&mut self, f: F)
+    where
+        F: FnOnce(&mut UI),
+    {
+        let mut flex_row_element = Element::new(element::ElementType::FlexRow, [0, 0]); // TODO: should flex row size be [0, 0]? - size should probably be the size of the parent element
+        f(&mut UI {
+            current_element: &mut flex_row_element,
+        }); // TODO: handle all children elements of the flex row
+    }
 
     // TODO: flex col, grid, text, panel, image ...
 }
