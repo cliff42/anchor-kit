@@ -6,9 +6,9 @@ pub fn layout_pass(root: &mut Element, frame_info: &FrameInfo) {
     // TODO: add some way to check that the tree passed in is valid? and will fit in the window size before rendering
     // TODO: think about a way to avoid running this every frame unless required (maybe only on data change etc) -> (ie) a super simple retained mode)?
 
-    for child_element in root.children.iter_mut() {
+    for c in root.children.iter_mut() {
         // for all top-level elements the parent position is the frame origin, and parent size is just the entire frame's resolution
-        handle_element_layout(child_element, FRAME_ORIGIN, frame_info.size);
+        handle_element_layout(c, FRAME_ORIGIN, frame_info.size);
     }
 }
 
@@ -20,8 +20,8 @@ fn handle_element_layout(
     match &element._type {
         ElementType::Root => {
             // TODO: should we panic here? or bubble up an error instead? (should probably have a check to make sure the tree is valid by not having 2 roots)
-            for child_element in element.children.iter_mut() {
-                handle_element_layout(child_element, allocated_origin, allocated_size);
+            for c in element.children.iter_mut() {
+                handle_element_layout(c, allocated_origin, allocated_size);
             }
         }
         ElementType::Anchor(anchor_position) => {
@@ -30,8 +30,7 @@ fn handle_element_layout(
         ElementType::Text(_) => {
             handle_text_element(element, allocated_origin, allocated_size);
         }
-        ElementType::FlexRow => handle_flex_row(element, allocated_origin, allocated_size), // TODO: implement
-        ElementType::Panel => {} // TODO: implement
+        ElementType::FlexRow => handle_flex_row(element, allocated_origin, allocated_size),
     }
 }
 

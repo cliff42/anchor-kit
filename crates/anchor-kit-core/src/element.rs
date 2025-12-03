@@ -4,10 +4,9 @@ use crate::anchor::AnchorPosition;
 pub enum ElementType {
     Root,
     Anchor(AnchorPosition),
-    Panel,
     Text(String),
     FlexRow,
-    // TODO: add things like flex col and flex row
+    // TODO: add things like flex col, table, etc.
 }
 
 #[derive(Clone, Debug)]

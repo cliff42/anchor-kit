@@ -1,13 +1,11 @@
 #[derive(Clone, Copy, Debug)]
 pub struct Rectangle {
-    pub x: f32,
-    pub y: f32,
-    pub w: f32,
-    pub h: f32,
+    pub position: [u32; 2], // x, y
+    pub size: [u32; 2] // w, h
 }
 
 impl Rectangle {
-    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
-        Self { x, y, w, h }
+    pub fn new(position: [u32; 2], size: [u32; 2]) -> Self {
+        Self { position, size }
     }
 }
