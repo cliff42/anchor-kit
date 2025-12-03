@@ -58,7 +58,7 @@ impl UIState {
 
         let mut render_list = RenderList::default();
 
-        // TODO: don't pass render_list here, it should be populated in another pass. layout_pass will just populate the element tree and each element's absolute positions relative to the window
+        // TODO: add a styling/ measurement pass which will set the correct sizes for each element based on style before running the layout pass
         layout_pass(&mut self.root, &frame_info);
         render_pass(&self.root, &mut render_list);
 

@@ -22,7 +22,7 @@ impl Element {
     pub fn new(element_type: ElementType, size: [u32; 2]) -> Self {
         Self {
             _type: element_type,
-            size, // will be overwritten if using SizingPolicy::Auto in style
+            size,                    // will be overwritten if using SizingPolicy::Auto in style
             style: Style::default(), // TODO: placeholder for now -> we should pass this in eventually
             frame_position: None,
             children: Vec::new(),
