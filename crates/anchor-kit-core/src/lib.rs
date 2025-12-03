@@ -3,6 +3,7 @@ mod element;
 mod layout;
 mod primitives;
 mod render;
+mod style;
 
 use anchor::AnchorPosition;
 use element::Element;

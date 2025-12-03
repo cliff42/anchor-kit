@@ -1,9 +1,12 @@
-use crate::{element::{self, Element, ElementType}, primitives::{color::Color, rectangle::Rectangle, text::Text}};
+use crate::{
+    element::{self, Element, ElementType},
+    primitives::{color::Color, rectangle::Rectangle, text::Text},
+};
 
 #[derive(Clone, Default, Debug)]
 pub struct RenderList {
     rectangles: Vec<Rectangle>,
-    text: Vec<Text>
+    text: Vec<Text>,
 }
 
 pub fn render_pass(root: &Element, render_list: &mut RenderList) {
@@ -32,7 +35,7 @@ pub fn handle_element_render(element: &Element, render_list: &mut RenderList) {
             for c in element.children.iter() {
                 handle_element_render(c, render_list);
             }
-        },
+        }
     }
 }
 
@@ -43,12 +46,22 @@ fn handle_text_element(element: &Element, render_list: &mut RenderList) {
         _ => return,
     };
     let position = match &element.frame_position {
-        Some(pos) => {*pos},
+        Some(pos) => *pos,
         None => return,
     };
 
-    let color = Color{r: 0, g: 0, b: 0, a: 255}; // TODO: placeholder -> this should eventually be passed in to the closure
+    let color = Color {
+        r: 0,
+        g: 0,
+        b: 0,
+        a: 255,
+    }; // TODO: placeholder -> this should eventually be passed in to the closure
 
-    let text_prim = Text { text, position, size: element.size, color};
+    let text_prim = Text {
+        text,
+        position,
+        size: element.size,
+        color,
+    };
     render_list.text.push(text_prim);
 }

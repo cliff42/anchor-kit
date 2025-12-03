@@ -1,7 +1,7 @@
 #[derive(Clone, Copy, Debug)]
 pub struct Rectangle {
     pub position: [u32; 2], // x, y
-    pub size: [u32; 2] // w, h
+    pub size: [u32; 2],     // w, h
 }
 
 impl Rectangle {
