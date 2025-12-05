@@ -1,6 +1,7 @@
 mod anchor;
 mod element;
 mod layout;
+mod measure;
 mod primitives;
 mod render;
 mod style;
@@ -9,6 +10,8 @@ use anchor::AnchorPosition;
 use element::Element;
 use layout::layout_pass;
 use render::{render_pass, RenderList};
+
+use crate::measure::measure_pass;
 
 // TODO: origin (0,0) should be top-left
 
@@ -58,7 +61,7 @@ impl UIState {
 
         let mut render_list = RenderList::default();
 
-        // TODO: add a styling/ measurement pass which will set the correct sizes for each element based on style before running the layout pass
+        measure_pass(&mut self.root, &frame_info);
         layout_pass(&mut self.root, &frame_info);
         render_pass(&self.root, &mut render_list);
 
