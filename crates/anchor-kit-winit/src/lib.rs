@@ -1,3 +1,1 @@
-fn main() {
-    println!("Hello, world!");
-}
+// TODO: add integration for winit
