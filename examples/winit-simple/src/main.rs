@@ -67,5 +67,5 @@ fn main() {
     event_loop.set_control_flow(ControlFlow::Wait);
 
     let mut app = App::default();
-    event_loop.run_app(&mut app);
+    event_loop.run_app(&mut app).unwrap();
 }
