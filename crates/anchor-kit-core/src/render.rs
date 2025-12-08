@@ -5,8 +5,8 @@ use crate::{
 
 #[derive(Clone, Default, Debug)]
 pub struct RenderList {
-    rectangles: Vec<Rectangle>,
-    text: Vec<Text>,
+    pub rectangles: Vec<Rectangle>,
+    pub text: Vec<Text>,
 }
 
 pub fn render_pass(root: &Element, render_list: &mut RenderList) {

@@ -4,3 +4,6 @@ resolver = "2"
 members = [
     "crates/*",
 ]
+
+[workspace.dependencies]
+anchor-kit-core = { path = "crates/anchor-kit-core" }

@@ -1,10 +1,10 @@
-mod anchor;
-mod element;
-mod layout;
-mod measure;
-mod primitives;
-mod render;
-mod style;
+pub mod anchor;
+pub mod element;
+pub mod layout;
+pub mod measure;
+pub mod primitives;
+pub mod render;
+pub mod style;
 
 use anchor::AnchorPosition;
 use element::Element;
@@ -13,9 +13,6 @@ use render::{render_pass, RenderList};
 
 use crate::measure::measure_pass;
 
-// TODO: origin (0,0) should be top-left
-
-// TODO: this should be moved
 pub struct FrameInfo {
     pub size: [u32; 2], // width, height
     pub time_ns: f32,   // TODO: should we have a struct for this? -> something like SystemTime?
@@ -45,9 +42,6 @@ impl UIState {
         }
     }
 
-    // TODO: have a method of converting
-
-    // TODO: frame info should be size of window, timestamp etc. (another struct)
     /// Returns a render list of primatives to send to the renderer backend integrations to draw the frame
     pub fn generate_frame<F>(&mut self, frame_info: FrameInfo, f: F) -> RenderList
     where
@@ -65,7 +59,7 @@ impl UIState {
         layout_pass(&mut self.root, &frame_info);
         render_pass(&self.root, &mut render_list);
 
-        render_list // TODO: output the render/ draw list to the actual winit or wgpu rendering code
+        render_list
     }
 }
 
