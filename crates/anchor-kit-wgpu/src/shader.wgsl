@@ -1,11 +1,11 @@
 struct VertexInput {
-    @location(0) position: vec2<f32>; // normalized pos
-    @location(1) color: vec4<f32>; // r, g, b, a
+    @location(0) position: vec2<f32>, // normalized pos
+    @location(1) color: vec4<f32>, // r, g, b, a
 }
 
 struct VertexOutput {
-    @builtin(position) position: vec4<f32>;
-    @location(0) color: vec4<f32>;
+    @builtin(position) position: vec4<f32>,
+    @location(0) color: vec4<f32>,
 };
 
 @vertex
