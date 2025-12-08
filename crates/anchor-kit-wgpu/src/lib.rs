@@ -7,7 +7,7 @@ pub struct FrameInfo {
 }
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::AnyBitPattern)] // TODO: do we need to go back to bytemuck POD/ zeroable here instead?
+#[derive(Copy, Clone, Debug, bytemuck::NoUninit)] // TODO: do we need to go back to bytemuck POD/ zeroable here instead?
 struct Vertex {
     position: [f32; 2], // x, y (normalized)
     color: [f32; 4],    // r, g, b, a
@@ -69,7 +69,7 @@ fn get_vertices_and_indices_for_rectangle(
     let y0 = y as f32 / frame_h;
     let y1 = (y + h) as f32 / frame_h;
 
-    let color = rect.color.to_rgba_f32;
+    let color = rect.color.to_rgba_f32();
 
     let v0 = Vertex {
         position: [x0, y0],
@@ -91,7 +91,7 @@ fn get_vertices_and_indices_for_rectangle(
     let vertices = [v0, v1, v2, v3];
 
     // triangles are v0 -> v1 -> v2, and v0 -> v2 -> v3.
-    let indices = vec![
+    let indices = [
         vertex_offset,
         vertex_offset + 1,
         vertex_offset + 2,
@@ -202,8 +202,8 @@ impl Renderer {
             // offset will increment as new vertices are added
             let (new_vertices, new_indices) =
                 &get_vertices_and_indices_for_rectangle(rect, frame_info, vertices.len() as u32);
-            vertices.extend_from_slice(&new_vertices);
-            indices.extend_from_slice(&new_indices);
+            vertices.extend_from_slice(new_vertices);
+            indices.extend_from_slice(new_indices);
         }
 
         // TODO: add other primatives -> figure out text rendering
@@ -218,8 +218,8 @@ impl Renderer {
 
         // set data to be rendered
         render_pass.set_pipeline(&self.render_pipeline);
-        render_pass.set_vertex_buffer(0, &self.vertex_buffer.slice(..));
-        render_pass.set_index_buffer(&self.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+        render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
+        render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         render_pass.draw_indexed(0..indices.len() as u32, 0, 0..1);
     }
 

@@ -5,5 +5,9 @@ members = [
     "crates/*",
 ]
 
+exclude = [
+    "examples/*"
+]
+
 [workspace.dependencies]
 anchor-kit-core = { path = "crates/anchor-kit-core" }

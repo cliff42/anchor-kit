@@ -8,7 +8,7 @@ pub struct Rectangle {
 }
 
 impl Rectangle {
-    pub fn new(position: [u32; 2], size: [u32; 2]) -> Self {
-        Self { position, size }
+    pub fn new(position: [u32; 2], size: [u32; 2], color: Color) -> Self {
+        Self { position, size, color }
     }
 }

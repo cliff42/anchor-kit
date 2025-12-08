@@ -3,4 +3,12 @@ name = "winit-simple"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+
 [dependencies]
+winit = "0.29"
+wgpu = "0.19"
+pollster = "0.3"
+
+anchor-kit-core = { path = "../../crates/anchor-kit-core" }
+anchor-kit-wgpu = { path = "../../crates/anchor-kit-wgpu" }
