@@ -34,7 +34,7 @@ fn get_vertex_buffer(device: &wgpu::Device, capacity_bytes: wgpu::BufferAddress)
     device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("anchor-kit vertex buffer"),
         size: capacity_bytes,
-        usage: wgpu::BufferUsages::VERTEX,
+        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     })
 }
@@ -43,7 +43,7 @@ fn get_index_buffer(device: &wgpu::Device, capacity_bytes: wgpu::BufferAddress) 
     device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("anchor-kit index buffer"),
         size: capacity_bytes,
-        usage: wgpu::BufferUsages::INDEX,
+        usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     })
 }
@@ -200,10 +200,9 @@ impl Renderer {
         // convert all primatives to vertices
         for rect in &render_list.rectangles {
             // offset will increment as new vertices are added
-            let (new_vertices, new_indices) =
-                &get_vertices_and_indices_for_rectangle(rect, frame_info, vertices.len() as u32);
-            vertices.extend_from_slice(new_vertices);
-            indices.extend_from_slice(new_indices);
+            let (new_vertices, new_indices) = get_vertices_and_indices_for_rectangle(rect, frame_info, vertices.len() as u32);
+            vertices.extend_from_slice(&new_vertices);
+            indices.extend_from_slice(&new_indices);
         }
 
         // TODO: add other primatives -> figure out text rendering
@@ -214,7 +213,7 @@ impl Renderer {
 
         // write data to the queue
         queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertices));
-        queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertices));
+        queue.write_buffer(&self.index_buffer, 0, bytemuck::cast_slice(&indices));
 
         // set data to be rendered
         render_pass.set_pipeline(&self.render_pipeline);
@@ -231,7 +230,7 @@ impl Renderer {
         if num_requested_vertices <= self.vertex_buffer_capacity {
             return;
         }
-        let new_size = self.vertex_buffer_capacity.next_power_of_two(); // we should grow exponentially in this case to avoid more resizes in the future
+        let new_size = num_requested_vertices.next_power_of_two(); // we should grow exponentially in this case to avoid more resizes in the future
         self.vertex_buffer = get_vertex_buffer(device, Vertex::capacity_to_bytes(new_size));
         self.vertex_buffer_capacity = new_size;
     }
@@ -244,7 +243,7 @@ impl Renderer {
         if num_requested_indices <= self.index_buffer_capacity {
             return;
         }
-        let new_size = self.index_buffer_capacity.next_power_of_two();
+        let new_size = num_requested_indices.next_power_of_two();
         self.index_buffer = get_index_buffer(
             device,
             (new_size * std::mem::size_of::<u32>()) as wgpu::BufferAddress, // u32 for size of index
