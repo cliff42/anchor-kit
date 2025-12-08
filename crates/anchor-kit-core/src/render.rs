@@ -1,5 +1,5 @@
 use crate::{
-    element::{self, Element, ElementType},
+    element::{Element, ElementType},
     primitives::{color::Color, rectangle::Rectangle, text::Text},
 };
 
