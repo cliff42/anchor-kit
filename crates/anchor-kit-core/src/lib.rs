@@ -81,14 +81,15 @@ impl<'a> UI<'a> {
         self.current_element.children.push(text_element);
     }
 
-    pub fn flew_row<F>(&mut self, f: F)
+    pub fn flex_row<F>(&mut self, f: F)
     where
         F: FnOnce(&mut UI),
     {
         let mut flex_row_element = Element::new(element::ElementType::FlexRow, [0, 0]); // TODO: should flex row size be [0, 0]? - size should probably be the size of the parent element
         f(&mut UI {
             current_element: &mut flex_row_element,
-        }); // TODO: handle all children elements of the flex row
+        });
+        self.current_element.children.push(flex_row_element);
     }
 
     // TODO: flex col, grid, text, panel, image ...
