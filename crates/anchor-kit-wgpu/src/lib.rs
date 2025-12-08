@@ -90,14 +90,14 @@ fn get_vertices_and_indices_for_rectangle(
 
     let vertices = [v0, v1, v2, v3];
 
-    // triangles are v0 -> v1 -> v2, and v0 -> v2 -> v3.
+    // triangles are v0 -> v2 -> v1, and v0 -> v3 -> v2. (have to go in ccw order)
     let indices = [
         vertex_offset,
+        vertex_offset + 2,
         vertex_offset + 1,
-        vertex_offset + 2,
         vertex_offset,
-        vertex_offset + 2,
         vertex_offset + 3,
+        vertex_offset + 2,
     ];
 
     (vertices, indices)
