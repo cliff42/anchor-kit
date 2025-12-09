@@ -1,9 +1,9 @@
 use anchor_kit_core::{primitives::rectangle::Rectangle, render::RenderList};
+use glyphon::{Cache, FontSystem, SwashCache, TextAtlas, TextRenderer, Viewport};
 use wgpu::include_wgsl;
 
-pub struct FrameInfo {
-    pub size_px: [f32; 2], // w, h
-    pub scale: f32,
+pub struct ScreenInfo {
+    pub size_px: [u32; 2], // w, h
 }
 
 #[repr(C)]
@@ -56,18 +56,18 @@ fn get_index_buffer(device: &wgpu::Device, capacity_bytes: wgpu::BufferAddress) 
 // v3--v2
 fn get_vertices_and_indices_for_rectangle(
     rect: &Rectangle,
-    frame_info: &FrameInfo,
+    screen_info: &ScreenInfo,
     vertex_offset: u32,
 ) -> ([Vertex; 4], [u32; 6]) {
     let [x, y] = rect.position;
     let [w, h] = rect.size;
-    let [frame_w, frame_h] = frame_info.size_px;
+    let [screen_w, screen_h] = screen_info.size_px;
 
     // normalize pixel values
-    let x0 = x as f32 / frame_w;
-    let x1 = (x + w) as f32 / frame_w;
-    let y0 = y as f32 / frame_h;
-    let y1 = (y + h) as f32 / frame_h;
+    let x0 = x as f32 / screen_w as f32;
+    let x1 = (x + w) as f32 / screen_w as f32;
+    let y0 = y as f32 / screen_h as f32;
+    let y1 = (y + h) as f32 / screen_h as f32;
 
     let color = rect.color.to_rgba_f32();
 
@@ -103,18 +103,41 @@ fn get_vertices_and_indices_for_rectangle(
     (vertices, indices)
 }
 
+struct GlyphonRenderer {
+    font_system: FontSystem,
+    swash_cache: SwashCache,
+    viewport: Viewport,
+    atlas: TextAtlas,
+    text_renderer: TextRenderer,
+    glyphon_cache: glyphon::Cache,
+}
+
 pub struct Renderer {
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     vertex_buffer_capacity: usize,
     index_buffer: wgpu::Buffer,
     index_buffer_capacity: usize,
+    glyphon_renderer: GlyphonRenderer,
 }
 
 impl Renderer {
-    pub fn new(device: &wgpu::Device, texture_format: wgpu::TextureFormat) -> Self {
+    pub fn new(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        texture_format: wgpu::TextureFormat,
+    ) -> Self {
         // inspired by: https://sotrh.github.io/learn-wgpu/beginner/tutorial3-pipeline/#how-do-we-use-the-shaders
         let shader = device.create_shader_module(include_wgsl!("shader.wgsl"));
+
+        // set up glyphon text rendering (inspired by: https://github.com/grovesNL/glyphon/blob/main/examples/hello-world.rs)
+        let font_system = FontSystem::new();
+        let swash_cache = SwashCache::new();
+        let glyphon_cache = Cache::new(device);
+        let viewport = Viewport::new(device, &glyphon_cache);
+        let mut atlas = TextAtlas::new(device, queue, &glyphon_cache, texture_format);
+        let text_renderer = TextRenderer::new(&mut atlas, device, wgpu::MultisampleState::default(), None);
+
 
         let initial_vertex_buffer_capacity = 1024; // reasonable estiamte for small scale applications so we don't have to resize right away
         let vertex_buffer = get_vertex_buffer(
@@ -180,6 +203,7 @@ impl Renderer {
             vertex_buffer_capacity: initial_vertex_buffer_capacity as usize,
             index_buffer,
             index_buffer_capacity: initial_index_buffer_capacity as usize,
+            glyphon_renderer: GlyphonRenderer { font_system , swash_cache, viewport, atlas, text_renderer, glyphon_cache }
         }
     }
 
@@ -191,7 +215,7 @@ impl Renderer {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         render_pass: &mut wgpu::RenderPass<'_>,
-        frame_info: &FrameInfo,
+        screen_info: &ScreenInfo,
         render_list: &RenderList,
     ) {
         let mut vertices: Vec<Vertex> = vec![];
@@ -200,7 +224,8 @@ impl Renderer {
         // convert all primatives to vertices
         for rect in &render_list.rectangles {
             // offset will increment as new vertices are added
-            let (new_vertices, new_indices) = get_vertices_and_indices_for_rectangle(rect, frame_info, vertices.len() as u32);
+            let (new_vertices, new_indices) =
+                get_vertices_and_indices_for_rectangle(rect, screen_info, vertices.len() as u32);
             vertices.extend_from_slice(&new_vertices);
             indices.extend_from_slice(&new_indices);
         }

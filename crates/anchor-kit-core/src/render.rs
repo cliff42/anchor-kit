@@ -66,8 +66,12 @@ fn handle_text_element(element: &Element, render_list: &mut RenderList) {
     };
 
     // TODO: placeholder rect
-    let rect = Rectangle{position, color, size: element.size};
+    let rect = Rectangle {
+        position,
+        color,
+        size: element.size,
+    };
     render_list.rectangles.push(rect);
-    
+
     render_list.text.push(text_prim);
 }

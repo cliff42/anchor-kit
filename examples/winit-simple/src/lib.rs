@@ -9,8 +9,8 @@ use winit::{
 };
 
 use anchor_kit_core::{anchor::AnchorPosition, render};
-use anchor_kit_core::{FrameInfo as UiFrameInfo, UIState};
-use anchor_kit_wgpu::{FrameInfo as GpuFrameInfo, Renderer};
+use anchor_kit_core::{FrameInfo, UIState};
+use anchor_kit_wgpu::{ScreenInfo, Renderer};
 
 // This will store the state of our app
 // lib.rs
@@ -82,7 +82,7 @@ impl State {
             desired_maximum_frame_latency: 2,
         };
 
-        let renderer = Renderer::new(&device, surface_format);
+        let renderer = Renderer::new(&device, &queue, surface_format);
 
         let ui_state = UIState::new([size.width, size.height]);
 
@@ -137,7 +137,7 @@ impl State {
                 label: Some("Render Encoder"),
             });
 
-        let ui_frame_info = UiFrameInfo {
+        let ui_frame_info = FrameInfo {
             size: [self.config.width, self.config.height],
             time_ns: 0.0,
         };
@@ -157,9 +157,8 @@ impl State {
             })
         });
 
-        let frame_info = GpuFrameInfo {
-            size_px: [self.config.width as f32, self.config.height as f32],
-            scale: 1.0,
+        let screen_info = ScreenInfo {
+            size_px: [self.config.width, self.config.height],
         };
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -187,7 +186,7 @@ impl State {
             &self.device,
             &self.queue,
             &mut render_pass,
-            &frame_info,
+            &screen_info,
             &render_list,
         );
 
