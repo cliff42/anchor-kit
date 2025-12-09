@@ -50,12 +50,13 @@ fn handle_text_element(element: &Element, render_list: &mut RenderList) {
         None => return,
     };
 
+    let seed = (position[0].wrapping_mul(73856093) ^ position[1].wrapping_mul(19349663)) as u8;
     let color = Color {
-        r: 0,
-        g: 0,
-        b: 0,
+        r: seed.wrapping_mul(17) as u32,
+        g: seed.wrapping_mul(31) as u32,
+        b: seed.wrapping_mul(47) as u32,
         a: 255,
-    }; // TODO: placeholder -> this should eventually be passed in to the closure
+    };
 
     let text_prim = Text {
         text,
@@ -63,5 +64,10 @@ fn handle_text_element(element: &Element, render_list: &mut RenderList) {
         size: element.size,
         color,
     };
+
+    // TODO: placeholder rect
+    let rect = Rectangle{position, color, size: element.size};
+    render_list.rectangles.push(rect);
+    
     render_list.text.push(text_prim);
 }
