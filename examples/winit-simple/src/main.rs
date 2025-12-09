@@ -1,10 +1,78 @@
-// TODO: this doesn't have winit integration for now, just simple testing
+/*use winit::{
+    application::ApplicationHandler,
+    event::WindowEvent,
+    event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
+    window::{Window, WindowId},
+};
 
-let mut ui_state = UIState::new([800, 600]);
-let frame_info = FrameInfo { size: [800, 600], time_ns: 0.0 };
+#[derive(Default)]
+struct App {
+    window: Option<Window>,
+}
 
-let render_list = ui_state.generate_frame(frame_info, |ui| {
-    ui.anchor(AnchorPosition::TopLeft, [100, 50], |ui| {
-        ui.text("hello world".into());
-    });
-});
+impl ApplicationHandler for App {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        self.window = Some(
+            event_loop
+                .create_window(Window::default_attributes())
+                .unwrap(),
+        );
+    }
+
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        window_id: WindowId,
+        event: WindowEvent,
+    ) {
+        match event {
+            WindowEvent::CloseRequested => {
+                println!("Closing");
+                event_loop.exit();
+            }
+            WindowEvent::RedrawRequested => {
+                // Redraw the application.
+                //
+                // It's preferable for applications that do not render continuously to render in
+                // this event rather than in AboutToWait, since rendering in here allows
+                // the program to gracefully handle redraws requested by the OS.
+
+                // Draw.
+
+                // Queue a RedrawRequested event.
+                //
+                // You only need to call this if you've determined that you need to redraw in
+                // applications which do not always need to. Applications that redraw continuously
+                // can render here instead.
+                self.window.as_ref().unwrap().request_redraw();
+            }
+            _ => (),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum Event {
+    Timer,
+}
+
+fn main() {
+    env_logger::init();
+
+    let event_loop = EventLoop::new().unwrap();
+
+    // ControlFlow::Wait pauses the event loop if no events are available to process.
+    // This is ideal for non-game applications that only update in response to user
+    // input, and uses significantly less power/CPU time than ControlFlow::Poll.
+    event_loop.set_control_flow(ControlFlow::Wait);
+
+    let mut app = App::default();
+    event_loop.run_app(&mut app).unwrap();
+}
+*/
+
+use winit_simple::run;
+
+fn main() {
+    run().unwrap();
+}

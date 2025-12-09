@@ -6,9 +6,9 @@ edition = "2021"
 [workspace]
 
 [dependencies]
-winit = "0.29"
-wgpu = "0.19"
+anyhow = "1.0"
+winit = "0.30.12"
+env_logger = "0.11.8"
+log = "0.4.29"
+wgpu = "27.0.1"
 pollster = "0.3"
-
-anchor-kit-core = { path = "../../crates/anchor-kit-core" }
-anchor-kit-wgpu = { path = "../../crates/anchor-kit-wgpu" }
