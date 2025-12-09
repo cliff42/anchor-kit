@@ -50,11 +50,10 @@ fn handle_text_element(element: &Element, render_list: &mut RenderList) {
         None => return,
     };
 
-    let seed = (position[0].wrapping_mul(73856093) ^ position[1].wrapping_mul(19349663)) as u8;
     let color = Color {
-        r: seed.wrapping_mul(17) as u32,
-        g: seed.wrapping_mul(31) as u32,
-        b: seed.wrapping_mul(47) as u32,
+        r: 100,
+        g: 100,
+        b: 100,
         a: 255,
     };
 
