@@ -64,10 +64,10 @@ fn get_vertices_and_indices_for_rectangle(
     let [screen_w, screen_h] = screen_info.size_px;
 
     // normalize pixel values
-    let x0 = x as f32 / frame_w;
-    let x1 = (x + w) as f32 / frame_w;
-    let y0 = y as f32 / frame_h;
-    let y1 = (y + h) as f32 / frame_h;
+    let x0 = x as f32 / screen_w as f32;
+    let x1 = (x + w) as f32 / screen_w as f32;
+    let y0 = y as f32 / screen_h as f32;
+    let y1 = (y + h) as f32 / screen_h as f32;
 
     let color = rect.color.to_rgba_f32();
 
