@@ -1,4 +1,4 @@
-use winit::{
+/*use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
@@ -68,4 +68,11 @@ fn main() {
 
     let mut app = App::default();
     event_loop.run_app(&mut app).unwrap();
+}
+*/
+
+use winit_simple::run;
+
+fn main() {
+    run().unwrap();
 }
