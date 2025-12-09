@@ -8,9 +8,9 @@ use winit::{
     window::Window,
 };
 
-use anchor_kit_core::{anchor::AnchorPosition, render};
+use anchor_kit_core::anchor::AnchorPosition;
 use anchor_kit_core::{FrameInfo, UIState};
-use anchor_kit_wgpu::{ScreenInfo, Renderer};
+use anchor_kit_wgpu::{Renderer, ScreenInfo};
 
 // This will store the state of our app
 // lib.rs
@@ -27,13 +27,9 @@ pub struct State {
 }
 
 impl State {
-    // We don't need this to be async right now,
-    // but we will in the next tutorial
     pub async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         let size = window.inner_size();
 
-        // The instance is a handle to our GPU
-        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::PRIMARY,
             ..Default::default()
@@ -53,7 +49,6 @@ impl State {
             .request_device(&wgpu::DeviceDescriptor {
                 label: None,
                 required_features: wgpu::Features::empty(),
-                //experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 required_limits: wgpu::Limits::default(),
                 memory_hints: Default::default(),
                 trace: wgpu::Trace::Off,
@@ -61,9 +56,6 @@ impl State {
             .await?;
 
         let surface_caps = surface.get_capabilities(&adapter);
-        // Shader code in this tutorial assumes an sRGB surface texture. Using a different
-        // one will result in all the colors coming out darker. If you want to support non
-        // sRGB surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = surface_caps
             .formats
             .iter()
@@ -159,6 +151,7 @@ impl State {
 
         let screen_info = ScreenInfo {
             size_px: [self.config.width, self.config.height],
+            scale_factor: self.window.scale_factor() as f32,
         };
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -175,7 +168,6 @@ impl State {
                     }),
                     store: wgpu::StoreOp::Store,
                 },
-                //depth_slice: None,
             })],
             depth_stencil_attachment: None,
             occlusion_query_set: None,
