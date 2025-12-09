@@ -3,11 +3,12 @@ resolver = "2"
 
 members = [
     "crates/*",
+    "examples/*",
 ]
 
-exclude = [
-    "examples/*"
-]
+#exclude = [
+#    "examples/*"
+#]
 
 [workspace.dependencies]
 anchor-kit-core = { path = "crates/anchor-kit-core" }
