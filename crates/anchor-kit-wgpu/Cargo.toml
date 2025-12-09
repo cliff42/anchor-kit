@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 anchor-kit-core.workspace = true
 bytemuck = { version = "1.24.0", features = ["derive"] }
-wgpu = "27.0.1"
+glyphon = "0.9.0"
+wgpu = "25.0.2"
