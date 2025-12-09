@@ -8,10 +8,16 @@ use winit::{
     window::Window,
 };
 
+use anchor_kit_core::{anchor::AnchorPosition, render};
+use anchor_kit_core::{FrameInfo as UiFrameInfo, UIState};
+use anchor_kit_wgpu::{FrameInfo as GpuFrameInfo, Renderer};
+
 // This will store the state of our app
 // lib.rs
 
 pub struct State {
+    renderer: Renderer,
+    ui_state: UIState,
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -47,7 +53,7 @@ impl State {
             .request_device(&wgpu::DeviceDescriptor {
                 label: None,
                 required_features: wgpu::Features::empty(),
-                experimental_features: wgpu::ExperimentalFeatures::disabled(),
+                //experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 required_limits: wgpu::Limits::default(),
                 memory_hints: Default::default(),
                 trace: wgpu::Trace::Off,
@@ -76,7 +82,13 @@ impl State {
             desired_maximum_frame_latency: 2,
         };
 
+        let renderer = Renderer::new(&device, surface_format);
+
+        let ui_state = UIState::new([size.width, size.height]);
+
         Ok(Self {
+            renderer,
+            ui_state,
             surface,
             device,
             queue,
@@ -125,28 +137,61 @@ impl State {
                 label: Some("Render Encoder"),
             });
 
-        {
-            let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.3,
-                            b: 0.1,
-                            a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                    depth_slice: None,
-                })],
-                depth_stencil_attachment: None,
-                occlusion_query_set: None,
-                timestamp_writes: None,
+        let ui_frame_info = UiFrameInfo {
+            size: [self.config.width, self.config.height],
+            time_ns: 0.0,
+        };
+
+        let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
+            ui.anchor(AnchorPosition::TopCenter, [600, 500], |ui| {
+                ui.flex_row(|ui| {
+                    ui.text("Hello".to_string());
+                    ui.text("World!".to_string());
+                });
             });
-        }
+            ui.anchor(AnchorPosition::BottomLeft, [100, 200], |ui| {
+                ui.flex_row(|ui| {
+                    ui.text("AnchorKit".to_string());
+                    ui.text("with wgpu!".to_string());
+                });
+            })
+        });
+
+        let frame_info = GpuFrameInfo {
+            size_px: [self.config.width as f32, self.config.height as f32],
+            scale: 1.0,
+        };
+
+        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Render Pass"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &view,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: 0.1,
+                        g: 0.3,
+                        b: 0.1,
+                        a: 1.0,
+                    }),
+                    store: wgpu::StoreOp::Store,
+                },
+                //depth_slice: None,
+            })],
+            depth_stencil_attachment: None,
+            occlusion_query_set: None,
+            timestamp_writes: None,
+        });
+
+        self.renderer.render(
+            &self.device,
+            &self.queue,
+            &mut render_pass,
+            &frame_info,
+            &render_list,
+        );
+
+        drop(render_pass);
 
         self.queue.submit(iter::once(encoder.finish()));
         output.present();
