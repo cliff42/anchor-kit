@@ -1,7 +1,13 @@
 [workspace]
-resolver = "3"
+resolver = "2"
+
 members = [
-    "crates/anchor-kit-core",
-    "crates/anchor-kit-winit",
-    "examples/winit-simple"
+    "crates/*",
 ]
+
+exclude = [
+    "examples/*"
+]
+
+[workspace.dependencies]
+anchor-kit-core = { path = "crates/anchor-kit-core" }
