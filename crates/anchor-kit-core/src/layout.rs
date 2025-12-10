@@ -1,4 +1,4 @@
-use crate::{anchor::AnchorPosition, element::ElementType, Element, FrameInfo};
+use crate::{anchor::AnchorPosition, element::ElementType, style::Align, Element, FrameInfo};
 
 const FRAME_ORIGIN: [u32; 2] = [0, 0];
 
@@ -76,12 +76,18 @@ fn handle_text_element(element: &mut Element, allocated_origin: [u32; 2]) {
 }
 
 fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2]) {
+    let style = element.style;
     let padding_between_children: u32 = 0; // TODO: this is a placeholder for now, it should be set by styling
 
     let [ax, ay] = allocated_origin;
     element.frame_position = Some(allocated_origin);
 
-    let mut x_offset = ax; // current offset of where to place the next child
+    let content_x_start = ax + style.padding.left;
+    let content_y_start = ay + style.padding.top;
+    let total_content_height =
+        element.size[1].saturating_sub(style.padding.top + style.padding.bottom);
+
+    let mut x_offset = content_x_start; // current offset of where to place the next child
 
     // left to right rendering order is assumed for now, but should be configurable in the future
     for (i, c) in element.children.iter_mut().enumerate() {
@@ -91,7 +97,25 @@ fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2]) {
             x_offset = x_offset.saturating_add(padding_between_children);
         }
 
-        let curr_child_origin = [x_offset, ay];
+        let cy = match c.style.align_y {
+            Align::Start => content_y_start + c.style.margin.top,
+            Align::Middle => {
+                content_y_start
+                    + c.style.margin.top
+                    + (total_content_height
+                        .saturating_sub(c.style.margin.top + c.style.margin.bottom) // can only use space without the child elements margins
+                        .saturating_sub(c.size[1])
+                        / 2)
+            }
+            Align::End => {
+                content_y_start
+                    + total_content_height
+                        .saturating_sub(c.size[1])
+                        .saturating_sub(c.style.margin.bottom)
+            }
+        };
+
+        let curr_child_origin = [x_offset, cy];
         handle_element_layout(c, curr_child_origin, c.size);
 
         x_offset = x_offset
@@ -101,12 +125,18 @@ fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2]) {
 }
 
 fn handle_flex_column(element: &mut Element, allocated_origin: [u32; 2]) {
+    let style = element.style;
     let padding_between_children: u32 = 0; // TODO: set by styling
 
     let [ax, ay] = allocated_origin;
     element.frame_position = Some(allocated_origin);
 
-    let mut y_offset = ay; // vertical offset for placing children
+    let content_x_start = ax + style.padding.left;
+    let content_y_start = ay + style.padding.top;
+    let total_content_width =
+        element.size[0].saturating_sub(style.padding.left + style.padding.right);
+
+    let mut y_offset = content_y_start; // vertical offset for placing children
 
     // top down rendering order is assumed for now, we can make this configurable in the future
     for (i, c) in element.children.iter_mut().enumerate() {
@@ -116,7 +146,25 @@ fn handle_flex_column(element: &mut Element, allocated_origin: [u32; 2]) {
             y_offset = y_offset.saturating_add(padding_between_children);
         }
 
-        let curr_child_origin = [ax, y_offset];
+        let cx = match c.style.align_x {
+            Align::Start => content_x_start + c.style.margin.left,
+            Align::Middle => {
+                content_x_start
+                    + c.style.margin.left
+                    + (total_content_width
+                        .saturating_sub(c.style.margin.left + c.style.margin.right) // for middle case we need to use only half of the with after margins
+                        .saturating_sub(c.size[0])
+                        / 2)
+            }
+            Align::End => {
+                content_x_start
+                    + total_content_width
+                        .saturating_sub(c.size[0])
+                        .saturating_sub(c.style.margin.right)
+            }
+        };
+
+        let curr_child_origin = [cx, y_offset];
         handle_element_layout(c, curr_child_origin, c.size);
 
         y_offset = y_offset

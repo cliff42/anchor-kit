@@ -36,7 +36,7 @@ fn measure_element_size(element: &mut Element, constraints: &Constraints) -> [u3
 fn size_from_policy(sizing_policy: SizingPolicy, children_size: u32, parent_size: u32) -> u32 {
     match sizing_policy {
         SizingPolicy::Auto => children_size.min(parent_size), // if size of children is larger than the parent we should still go with the parent size
-        SizingPolicy::FillParent => parent_size.min(children_size),
+        SizingPolicy::FillParent => parent_size,
         SizingPolicy::Fixed(s) => s,
     }
 }

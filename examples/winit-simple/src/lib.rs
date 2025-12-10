@@ -142,69 +142,86 @@ impl State {
                 AnchorPosition::TopCenter,
                 Some(Style {
                     width: SizingPolicy::Fixed(100),
+                    height: SizingPolicy::Fixed(200),
                     ..Default::default()
                 }),
                 |ui| {
-                    ui.flex_column(None, |ui| {
-                        ui.flex_row(
-                            Some(Style {
-                                margin: Insets {
-                                    top: 10,
-                                    right: 10,
-                                    bottom: 20,
-                                    left: 0,
+                    ui.flex_column(
+                        Some(Style {
+                            width: SizingPolicy::FillParent,
+                            height: SizingPolicy::FillParent,
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.flex_row(
+                                Some(Style {
+                                    margin: Insets {
+                                        top: 10,
+                                        right: 10,
+                                        bottom: 20,
+                                        left: 0,
+                                    },
+                                    padding: Insets {
+                                        top: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text("test".to_string(), None);
                                 },
-                                padding: Insets {
-                                    top: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    left: 0,
+                            );
+                            ui.flex_row(
+                                Some(Style {
+                                    margin: Insets {
+                                        top: 20,
+                                        right: 10,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    padding: Insets {
+                                        top: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    width: SizingPolicy::FillParent,
+                                    height: SizingPolicy::FillParent,
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        "Hello".to_string(),
+                                        Some(Style {
+                                            margin: Insets {
+                                                top: 0,
+                                                right: 10,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
+                                            padding: Insets {
+                                                top: 0,
+                                                right: 0,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
+                                            align_y: anchor_kit_core::style::Align::Middle,
+                                            ..Default::default()
+                                        }),
+                                    );
+                                    ui.text(
+                                        "World!".to_string(),
+                                        Some(Style {
+                                            align_y: anchor_kit_core::style::Align::End,
+                                            ..Default::default()
+                                        }),
+                                    );
                                 },
-                                ..Default::default()
-                            }),
-                            |ui| {
-                                ui.text("test".to_string(), None);
-                            },
-                        );
-                        ui.flex_row(
-                            Some(Style {
-                                margin: Insets {
-                                    top: 20,
-                                    right: 10,
-                                    bottom: 0,
-                                    left: 0,
-                                },
-                                padding: Insets {
-                                    top: 0,
-                                    right: 0,
-                                    bottom: 0,
-                                    left: 0,
-                                },
-                                ..Default::default()
-                            }),
-                            |ui| {
-                                ui.text(
-                                    "Hello".to_string(),
-                                    Some(Style {
-                                        margin: Insets {
-                                            top: 10,
-                                            right: 10,
-                                            bottom: 0,
-                                            left: 0,
-                                        },
-                                        padding: Insets {
-                                            top: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            left: 0,
-                                        },
-                                        ..Default::default()
-                                    }),
-                                );
-                                ui.text("World!".to_string(), None);
-                            },
-                        );
-                    });
+                            );
+                        },
+                    );
                 },
             );
             ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
