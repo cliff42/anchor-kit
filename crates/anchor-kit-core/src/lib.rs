@@ -11,7 +11,7 @@ use element::Element;
 use layout::layout_pass;
 use render::{render_pass, RenderList};
 
-use crate::measure::measure_pass;
+use crate::{measure::measure_pass, style::Style};
 
 pub struct FrameInfo {
     pub size: [u32; 2], // width, height
@@ -38,7 +38,7 @@ pub struct UI<'a> {
 impl UIState {
     pub fn new(size: [u32; 2]) -> Self {
         Self {
-            root: Element::new(element::ElementType::Root, size),
+            root: Element::new_root(size),
         }
     }
 
@@ -64,11 +64,12 @@ impl UIState {
 }
 
 impl<'a> UI<'a> {
-    pub fn anchor<F>(&mut self, anchor_position: AnchorPosition, size: [u32; 2], f: F)
+    // TODO: get rid of direct size param here and specify it in the style
+    pub fn anchor<F>(&mut self, anchor_position: AnchorPosition, style: Option<Style>, f: F)
     where
         F: FnOnce(&mut UI),
     {
-        let mut anchor_element = Element::new(element::ElementType::Anchor(anchor_position), size);
+        let mut anchor_element = Element::new(element::ElementType::Anchor(anchor_position), style);
         f(&mut UI {
             current_element: &mut anchor_element,
         }); // handle all child elements of the anchor position
@@ -77,7 +78,7 @@ impl<'a> UI<'a> {
 
     // TODO: add styling as param
     pub fn text(&mut self, text: String) {
-        let text_element = Element::new(element::ElementType::Text(text), [0, 0]);
+        let text_element = Element::new(element::ElementType::Text(text), None);
         self.current_element.children.push(text_element);
     }
 
@@ -85,7 +86,7 @@ impl<'a> UI<'a> {
     where
         F: FnOnce(&mut UI),
     {
-        let mut flex_row_element = Element::new(element::ElementType::FlexRow, [0, 0]); // TODO: should flex row size be [0, 0]? - size should probably be the size of the parent element
+        let mut flex_row_element = Element::new(element::ElementType::FlexRow, None);
         f(&mut UI {
             current_element: &mut flex_row_element,
         });

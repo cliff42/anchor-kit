@@ -32,6 +32,14 @@ fn measure_element_size(element: &mut Element, constraints: &Constraints) -> [u3
     }
 }
 
+fn size_from_policy(sizing_policy: SizingPolicy, children_size: u32, parent_size: u32) -> u32 {
+    match sizing_policy {
+        SizingPolicy::Auto => children_size.min(parent_size), // if size of children is larger than the parent we should still go with the parent size
+        SizingPolicy::FillParent => parent_size.min(children_size),
+        SizingPolicy::Fixed(s) => s,
+    }
+}
+
 fn measure_text_element_size(
     text: &String,
     element: &mut Element,
@@ -49,18 +57,8 @@ fn measure_text_element_size(
     let padded_width = text_width + style.padding.left + style.padding.right;
     let padded_height = text_height + style.padding.top + style.padding.bottom;
 
-    let max_width = constraints.max_size[0];
-    let max_height = constraints.max_size[1];
-
-    let element_width = match style.width {
-        SizingPolicy::Auto => padded_width.min(max_width),
-        SizingPolicy::Fixed(fw) => fw.min(max_width),
-    };
-
-    let element_height = match style.height {
-        SizingPolicy::Auto => padded_height.min(max_height),
-        SizingPolicy::Fixed(fh) => fh.min(max_height),
-    };
+    let element_width = size_from_policy(style.width, padded_width, constraints.max_size[0]);
+    let element_height = size_from_policy(style.height, padded_height, constraints.max_size[1]);
 
     element.size = [element_width, element_height]; // set the element size to use in the layout pass
     element.size
@@ -69,12 +67,25 @@ fn measure_text_element_size(
 fn measure_anchor_element_size(element: &mut Element, constraints: &Constraints) -> [u32; 2] {
     let style = element.style;
 
+    // for anchors their children are either constrained by their fixed size of their parents size
+    let child_constraints_w = match style.width {
+        SizingPolicy::Fixed(w) => w, // TODO: add padding here (from style)
+        _ => constraints.max_size[0],
+    };
+    let child_constraints_h = match style.height {
+        SizingPolicy::Fixed(h) => h, // TODO: add padding here (from style)
+        _ => constraints.max_size[1],
+    };
+    let child_constraints = Constraints {
+        max_size: [child_constraints_w, child_constraints_h],
+    };
+
     // anchor element's total width is based on the max of their children's sizes (bounding box of max size)
     let mut max_child_width = 0;
     let mut max_child_height = 0;
     // measure child elements first to get their sizes
     for c in element.children.iter_mut() {
-        let child_size = measure_element_size(c, constraints);
+        let child_size = measure_element_size(c, &child_constraints);
         max_child_width = max_child_width.max(child_size[0]);
         max_child_height = max_child_height.max(child_size[1]);
     }
@@ -82,18 +93,8 @@ fn measure_anchor_element_size(element: &mut Element, constraints: &Constraints)
     let padded_width = max_child_width + style.padding.left + style.padding.right;
     let padded_height = max_child_height + style.padding.top + style.padding.bottom;
 
-    let max_width = constraints.max_size[0];
-    let max_height = constraints.max_size[1];
-
-    let element_width = match style.width {
-        SizingPolicy::Auto => padded_width.min(max_width),
-        SizingPolicy::Fixed(fw) => fw.min(max_width),
-    };
-
-    let element_height = match style.height {
-        SizingPolicy::Auto => padded_height.min(max_height),
-        SizingPolicy::Fixed(fh) => fh.min(max_height),
-    };
+    let element_width = size_from_policy(style.width, padded_width, constraints.max_size[0]);
+    let element_height = size_from_policy(style.height, padded_height, constraints.max_size[1]);
 
     element.size = [element_width, element_height];
     element.size
@@ -135,15 +136,8 @@ fn measure_flex_row_element_size(element: &mut Element, constraints: &Constraint
     let padded_width = total_child_width + style.padding.left + style.padding.right;
     let padded_height = max_child_height + style.padding.top + style.padding.bottom;
 
-    let element_width = match style.width {
-        SizingPolicy::Auto => padded_width.min(max_width),
-        SizingPolicy::Fixed(fw) => fw.min(max_width),
-    };
-
-    let element_height = match style.height {
-        SizingPolicy::Auto => padded_height.min(max_height),
-        SizingPolicy::Fixed(fh) => fh.min(max_height),
-    };
+    let element_width = size_from_policy(style.width, padded_width, max_width);
+    let element_height = size_from_policy(style.height, padded_height, max_height);
 
     element.size = [element_width, element_height];
     element.size

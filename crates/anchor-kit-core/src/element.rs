@@ -1,4 +1,4 @@
-use crate::{anchor::AnchorPosition, style::Style};
+use crate::{anchor::AnchorPosition, style::{self, Style}};
 
 #[derive(Clone, Debug)]
 pub enum ElementType {
@@ -19,11 +19,21 @@ pub struct Element {
 }
 
 impl Element {
-    pub fn new(element_type: ElementType, size: [u32; 2]) -> Self {
+    pub fn new(element_type: ElementType, style: Option<Style>) -> Self {
         Self {
             _type: element_type,
-            size,                    // will be overwritten if using SizingPolicy::Auto in style
-            style: Style::default(), // TODO: placeholder for now -> we should pass this in eventually
+            size: [0, 0], // will be overwritten if using SizingPolicy::Auto in style
+            style: style.unwrap_or(Style::default()),
+            frame_position: None,
+            children: Vec::new(),
+        }
+    }
+
+    pub fn new_root(size: [u32; 2]) -> Self {
+        Self {
+            _type: ElementType::Root,
+            size,
+            style: Style::default(),
             frame_position: None,
             children: Vec::new(),
         }

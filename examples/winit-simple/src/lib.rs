@@ -8,7 +8,10 @@ use winit::{
     window::Window,
 };
 
-use anchor_kit_core::anchor::AnchorPosition;
+use anchor_kit_core::{
+    anchor::AnchorPosition,
+    style::{SizingPolicy, Style},
+};
 use anchor_kit_core::{FrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo};
 
@@ -135,13 +138,25 @@ impl State {
         };
 
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
-            ui.anchor(AnchorPosition::TopCenter, [600, 500], |ui| {
-                ui.flex_row(|ui| {
-                    ui.text("Hello".to_string());
-                    ui.text("World!".to_string());
-                });
-            });
-            ui.anchor(AnchorPosition::BottomLeft, [100, 200], |ui| {
+            ui.anchor(
+                AnchorPosition::TopCenter,
+                Some(Style {
+                    width: SizingPolicy::Fixed(100),
+                    ..Default::default()
+                }),
+                |ui| {
+                    ui.flex_row(|ui| {
+                        ui.text("Hello".to_string());
+                        ui.text("World!".to_string());
+                    });
+                    ui.anchor(AnchorPosition::BottomRight, None, |ui| {
+                        ui.flex_row(|ui| {
+                            ui.text("test".to_string());
+                        });
+                    });
+                },
+            );
+            ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
                 ui.flex_row(|ui| {
                     ui.text("AnchorKit".to_string());
                     ui.text("with wgpu!".to_string());
