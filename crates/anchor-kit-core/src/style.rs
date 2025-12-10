@@ -1,7 +1,8 @@
 #[derive(Debug, Clone, Copy)]
 pub enum SizingPolicy {
-    Auto,
+    Auto,       // hug to child elements
     Fixed(u32), // individual policy for width and height so only need 1 u32 here
+    FillParent, // take up entire space of parent element
 }
 
 #[derive(Debug, Clone, Copy)]

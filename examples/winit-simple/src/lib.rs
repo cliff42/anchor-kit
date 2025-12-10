@@ -8,7 +8,10 @@ use winit::{
     window::Window,
 };
 
-use anchor_kit_core::anchor::AnchorPosition;
+use anchor_kit_core::{
+    anchor::AnchorPosition,
+    style::{Insets, SizingPolicy, Style},
+};
 use anchor_kit_core::{FrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo};
 
@@ -135,16 +138,79 @@ impl State {
         };
 
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
-            ui.anchor(AnchorPosition::TopCenter, [600, 500], |ui| {
-                ui.flex_row(|ui| {
-                    ui.text("Hello".to_string());
-                    ui.text("World!".to_string());
-                });
-            });
-            ui.anchor(AnchorPosition::BottomLeft, [100, 200], |ui| {
-                ui.flex_row(|ui| {
-                    ui.text("AnchorKit".to_string());
-                    ui.text("with wgpu!".to_string());
+            ui.anchor(
+                AnchorPosition::TopCenter,
+                Some(Style {
+                    width: SizingPolicy::Fixed(100),
+                    ..Default::default()
+                }),
+                |ui| {
+                    ui.flex_column(None, |ui| {
+                        ui.flex_row(
+                            Some(Style {
+                                margin: Insets {
+                                    top: 10,
+                                    right: 10,
+                                    bottom: 20,
+                                    left: 0,
+                                },
+                                padding: Insets {
+                                    top: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    left: 0,
+                                },
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text("test".to_string(), None);
+                            },
+                        );
+                        ui.flex_row(
+                            Some(Style {
+                                margin: Insets {
+                                    top: 20,
+                                    right: 10,
+                                    bottom: 0,
+                                    left: 0,
+                                },
+                                padding: Insets {
+                                    top: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    left: 0,
+                                },
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text(
+                                    "Hello".to_string(),
+                                    Some(Style {
+                                        margin: Insets {
+                                            top: 10,
+                                            right: 10,
+                                            bottom: 0,
+                                            left: 0,
+                                        },
+                                        padding: Insets {
+                                            top: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            left: 0,
+                                        },
+                                        ..Default::default()
+                                    }),
+                                );
+                                ui.text("World!".to_string(), None);
+                            },
+                        );
+                    });
+                },
+            );
+            ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
+                ui.flex_row(None, |ui| {
+                    ui.text("AnchorKit".to_string(), None);
+                    ui.text("with wgpu!".to_string(), None);
                 });
             })
         });
