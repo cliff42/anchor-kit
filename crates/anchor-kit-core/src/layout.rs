@@ -31,6 +31,7 @@ fn handle_element_layout(
             handle_text_element(element, allocated_origin);
         }
         ElementType::FlexRow => handle_flex_row(element, allocated_origin),
+        ElementType::FlexColumn => handle_flex_column(element, allocated_origin),
     }
 }
 
@@ -75,7 +76,7 @@ fn handle_text_element(element: &mut Element, allocated_origin: [u32; 2]) {
 }
 
 fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2]) {
-    let padding_between_children: u32 = 8; // TODO: this is a placeholder for now, it should be set by styling
+    let padding_between_children: u32 = 0; // TODO: this is a placeholder for now, it should be set by styling
 
     let [ax, ay] = allocated_origin;
     element.frame_position = Some(allocated_origin);
@@ -84,15 +85,42 @@ fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2]) {
 
     // left to right rendering order is assumed for now, but should be configurable in the future
     for (i, c) in element.children.iter_mut().enumerate() {
-        let [cw, ch] = c.size; // this is already set properly by the measure pass
+        x_offset = x_offset.saturating_add(c.style.margin.left); // add margin of the child
 
         if i > 0 {
             x_offset = x_offset.saturating_add(padding_between_children);
         }
 
         let curr_child_origin = [x_offset, ay];
-        handle_element_layout(c, curr_child_origin, [cw, ch]);
+        handle_element_layout(c, curr_child_origin, c.size);
 
-        x_offset = x_offset.saturating_add(cw); // add the current child's width so the next child is offset correctly
+        x_offset = x_offset
+            .saturating_add(c.size[0])
+            .saturating_add(c.style.margin.right); // add the current child's width and its margin so the next child is offset correctly
+    }
+}
+
+fn handle_flex_column(element: &mut Element, allocated_origin: [u32; 2]) {
+    let padding_between_children: u32 = 0; // TODO: set by styling
+
+    let [ax, ay] = allocated_origin;
+    element.frame_position = Some(allocated_origin);
+
+    let mut y_offset = ay; // vertical offset for placing children
+
+    // top down rendering order is assumed for now, we can make this configurable in the future
+    for (i, c) in element.children.iter_mut().enumerate() {
+        y_offset = y_offset.saturating_add(c.style.margin.top);
+
+        if i > 0 {
+            y_offset = y_offset.saturating_add(padding_between_children);
+        }
+
+        let curr_child_origin = [ax, y_offset];
+        handle_element_layout(c, curr_child_origin, c.size);
+
+        y_offset = y_offset
+            .saturating_add(c.size[1])
+            .saturating_add(c.style.margin.bottom);
     }
 }

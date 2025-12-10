@@ -1,4 +1,4 @@
-use crate::{anchor::AnchorPosition, style::{self, Style}};
+use crate::{anchor::AnchorPosition, style::Style};
 
 #[derive(Clone, Debug)]
 pub enum ElementType {
@@ -6,7 +6,8 @@ pub enum ElementType {
     Anchor(AnchorPosition),
     Text(String),
     FlexRow,
-    // TODO: add things like flex col, table, etc.
+    FlexColumn,
+    // TODO: add things like table, etc.
 }
 
 #[derive(Clone, Debug)]

@@ -77,20 +77,31 @@ impl<'a> UI<'a> {
     }
 
     // TODO: add styling as param
-    pub fn text(&mut self, text: String) {
-        let text_element = Element::new(element::ElementType::Text(text), None);
+    pub fn text(&mut self, text: String, style: Option<Style>) {
+        let text_element = Element::new(element::ElementType::Text(text), style);
         self.current_element.children.push(text_element);
     }
 
-    pub fn flex_row<F>(&mut self, f: F)
+    pub fn flex_row<F>(&mut self, style: Option<Style>, f: F)
     where
         F: FnOnce(&mut UI),
     {
-        let mut flex_row_element = Element::new(element::ElementType::FlexRow, None);
+        let mut flex_row_element = Element::new(element::ElementType::FlexRow, style);
         f(&mut UI {
             current_element: &mut flex_row_element,
         });
         self.current_element.children.push(flex_row_element);
+    }
+
+    pub fn flex_column<F>(&mut self, style: Option<Style>, f: F)
+    where
+        F: FnOnce(&mut UI),
+    {
+        let mut flex_column_element = Element::new(element::ElementType::FlexColumn, style);
+        f(&mut UI {
+            current_element: &mut flex_column_element,
+        });
+        self.current_element.children.push(flex_column_element);
     }
 
     // TODO: flex col, grid, text, panel, image ...

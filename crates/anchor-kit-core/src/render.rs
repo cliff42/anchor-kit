@@ -36,6 +36,11 @@ pub fn handle_element_render(element: &Element, render_list: &mut RenderList) {
                 handle_element_render(c, render_list);
             }
         }
+        ElementType::FlexColumn => {
+            for c in element.children.iter() {
+                handle_element_render(c, render_list);
+            }
+        }
     }
 }
 

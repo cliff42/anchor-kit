@@ -10,7 +10,7 @@ use winit::{
 
 use anchor_kit_core::{
     anchor::AnchorPosition,
-    style::{SizingPolicy, Style},
+    style::{Insets, SizingPolicy, Style},
 };
 use anchor_kit_core::{FrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo};
@@ -145,21 +145,72 @@ impl State {
                     ..Default::default()
                 }),
                 |ui| {
-                    ui.flex_row(|ui| {
-                        ui.text("Hello".to_string());
-                        ui.text("World!".to_string());
-                    });
-                    ui.anchor(AnchorPosition::BottomRight, None, |ui| {
-                        ui.flex_row(|ui| {
-                            ui.text("test".to_string());
-                        });
+                    ui.flex_column(None, |ui| {
+                        ui.flex_row(
+                            Some(Style {
+                                margin: Insets {
+                                    top: 10,
+                                    right: 10,
+                                    bottom: 20,
+                                    left: 0,
+                                },
+                                padding: Insets {
+                                    top: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    left: 0,
+                                },
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text("test".to_string(), None);
+                            },
+                        );
+                        ui.flex_row(
+                            Some(Style {
+                                margin: Insets {
+                                    top: 20,
+                                    right: 10,
+                                    bottom: 0,
+                                    left: 0,
+                                },
+                                padding: Insets {
+                                    top: 0,
+                                    right: 0,
+                                    bottom: 0,
+                                    left: 0,
+                                },
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text(
+                                    "Hello".to_string(),
+                                    Some(Style {
+                                        margin: Insets {
+                                            top: 10,
+                                            right: 10,
+                                            bottom: 0,
+                                            left: 0,
+                                        },
+                                        padding: Insets {
+                                            top: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            left: 0,
+                                        },
+                                        ..Default::default()
+                                    }),
+                                );
+                                ui.text("World!".to_string(), None);
+                            },
+                        );
                     });
                 },
             );
             ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
-                ui.flex_row(|ui| {
-                    ui.text("AnchorKit".to_string());
-                    ui.text("with wgpu!".to_string());
+                ui.flex_row(None, |ui| {
+                    ui.text("AnchorKit".to_string(), None);
+                    ui.text("with wgpu!".to_string(), None);
                 });
             })
         });
