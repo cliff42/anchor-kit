@@ -1,6 +1,6 @@
 use crate::{
     element::{Element, ElementType},
-    style::SizingPolicy,
+    style::{SizingPolicy, TextStyle},
     FrameInfo,
 };
 
@@ -47,13 +47,15 @@ fn measure_text_element_size(
     constraints: &Constraints,
 ) -> [u32; 2] {
     let style = element.style;
+    let text_style_default_binding = TextStyle::default();
+    let text_style = element
+        .text_style
+        .as_ref()
+        .unwrap_or(&text_style_default_binding);
 
-    // TODO: these are placeholder values for now, should be dictated by style
-    let char_w: u32 = 8;
-    let line_h: u32 = 16;
-
-    let text_width = (text.chars().count() as u32).saturating_mul(char_w);
-    let text_height = line_h;
+    let char_w = text_style.font_size * 0.5; // TODO: is this a good enough guess?
+    let text_width = (text.chars().count() as f32 * char_w) as u32;
+    let text_height = text_style.line_height as u32;
 
     let padded_width = text_width + style.padding.left + style.padding.right;
     let padded_height = text_height + style.padding.top + style.padding.bottom;

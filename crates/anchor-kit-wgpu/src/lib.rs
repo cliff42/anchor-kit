@@ -1,7 +1,11 @@
-use anchor_kit_core::{primitives::rectangle::Rectangle, render::RenderList};
+use anchor_kit_core::{
+    primitives::rectangle::Rectangle,
+    render::RenderList,
+    style::{FontFamily, FontStyle, FontWeight},
+};
 use glyphon::{
-    Attrs, Cache, Family, FontSystem, Metrics, Shaping, SwashCache, TextArea, TextAtlas,
-    TextBounds, TextRenderer, Viewport,
+    Attrs, Cache, FontSystem, Metrics, Shaping, SwashCache, TextArea, TextAtlas, TextBounds,
+    TextRenderer, Viewport,
 };
 use wgpu::include_wgsl;
 
@@ -172,9 +176,13 @@ impl GlyphonRenderer {
         let mut text_buffers: Vec<glyphon::Buffer> = Vec::with_capacity(render_list.text.len());
 
         for text_item in &render_list.text {
+            let text_style = &text_item.text_style;
+
             // TODO: metrics should be set by text style passed in by user
-            let mut text_buffer =
-                glyphon::Buffer::new(&mut self.font_system, Metrics::new(12.0, 16.0));
+            let mut text_buffer = glyphon::Buffer::new(
+                &mut self.font_system,
+                Metrics::new(text_style.font_size, text_style.line_height),
+            );
 
             text_buffer.set_size(
                 &mut self.font_system,
@@ -182,11 +190,30 @@ impl GlyphonRenderer {
                 Some(physical_height),
             );
 
+            let text_color = glyphon::Color::rgba(
+                text_item.text_style.text_color.r,
+                text_item.text_style.text_color.g,
+                text_item.text_style.text_color.b,
+                text_item.text_style.text_color.a,
+            );
+
             // TODO: these styling options should be set by the user as well
+            let text_attrs = Attrs::new()
+                .family(Self::anchor_kit_font_family_to_glyphon(
+                    &text_style.font_family,
+                ))
+                .style(Self::anchor_kit_font_style_to_glyphon(
+                    &text_style.font_style,
+                ))
+                .weight(Self::anchor_kit_font_weight_to_glyphon(
+                    &text_style.font_weight,
+                ))
+                .color(text_color);
+
             text_buffer.set_text(
                 &mut self.font_system,
                 &text_item.text,
-                &Attrs::new().family(Family::SansSerif),
+                &text_attrs,
                 Shaping::Advanced,
             );
 
@@ -209,10 +236,10 @@ impl GlyphonRenderer {
             };
 
             let text_color = glyphon::Color::rgba(
-                text_item.color.r,
-                text_item.color.g,
-                text_item.color.b,
-                text_item.color.a,
+                text_item.text_style.text_color.r,
+                text_item.text_style.text_color.g,
+                text_item.text_style.text_color.b,
+                text_item.text_style.text_color.a,
             );
 
             text_areas.push(TextArea {
@@ -250,6 +277,39 @@ impl GlyphonRenderer {
         }
 
         self.atlas.trim();
+    }
+
+    fn anchor_kit_font_family_to_glyphon(font_family: &FontFamily) -> glyphon::Family<'_> {
+        match font_family {
+            FontFamily::Name(name) => glyphon::Family::Name(name),
+            FontFamily::Serif => glyphon::Family::Serif,
+            FontFamily::SansSerif => glyphon::Family::SansSerif,
+            FontFamily::Cursive => glyphon::Family::Cursive,
+            FontFamily::Fantasy => glyphon::Family::Fantasy,
+            FontFamily::Monospace => glyphon::Family::Monospace,
+        }
+    }
+
+    fn anchor_kit_font_weight_to_glyphon(font_weight: &FontWeight) -> glyphon::Weight {
+        match font_weight {
+            FontWeight::Thin => glyphon::Weight::THIN,
+            FontWeight::ExtraLight => glyphon::Weight::EXTRA_LIGHT,
+            FontWeight::Light => glyphon::Weight::LIGHT,
+            FontWeight::Normal => glyphon::Weight::NORMAL,
+            FontWeight::Medium => glyphon::Weight::MEDIUM,
+            FontWeight::SemiBold => glyphon::Weight::SEMIBOLD,
+            FontWeight::Bold => glyphon::Weight::BOLD,
+            FontWeight::ExtraBold => glyphon::Weight::EXTRA_BOLD,
+            FontWeight::Black => glyphon::Weight::BLACK,
+        }
+    }
+
+    fn anchor_kit_font_style_to_glyphon(font_style: &FontStyle) -> glyphon::Style {
+        match font_style {
+            FontStyle::Normal => glyphon::Style::Normal,
+            FontStyle::Italic => glyphon::Style::Italic,
+            FontStyle::Oblique => glyphon::Style::Oblique,
+        }
     }
 }
 

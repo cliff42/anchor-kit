@@ -10,7 +10,7 @@ use winit::{
 
 use anchor_kit_core::{
     anchor::AnchorPosition,
-    style::{Insets, SizingPolicy, Style},
+    style::{Insets, SizingPolicy, Style, TextStyle},
 };
 use anchor_kit_core::{FrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo};
@@ -134,7 +134,6 @@ impl State {
 
         let ui_frame_info = FrameInfo {
             size: [self.config.width, self.config.height],
-            time_ns: 0.0,
         };
 
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
@@ -171,7 +170,7 @@ impl State {
                                     ..Default::default()
                                 }),
                                 |ui| {
-                                    ui.text("test".to_string(), None);
+                                    ui.text("test".to_string(), None, None);
                                 },
                             );
                             ui.flex_row(
@@ -211,12 +210,27 @@ impl State {
                                             align_y: anchor_kit_core::style::Align::Middle,
                                             ..Default::default()
                                         }),
+                                        None,
                                     );
                                     ui.text(
                                         "World!".to_string(),
                                         Some(Style {
                                             align_y: anchor_kit_core::style::Align::Middle,
                                             ..Default::default()
+                                        }),
+                                        Some(TextStyle {
+                                            font_size: 30.0,
+                                            line_height: 50.0,
+                                            font_family:
+                                                anchor_kit_core::style::FontFamily::Cursive,
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            font_style: anchor_kit_core::style::FontStyle::Italic,
+                                            text_color: anchor_kit_core::primitives::color::Color {
+                                                r: 0,
+                                                g: 255,
+                                                b: 0,
+                                                a: 100,
+                                            },
                                         }),
                                     );
                                 },
@@ -227,8 +241,8 @@ impl State {
             );
             ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
                 ui.flex_row(None, |ui| {
-                    ui.text("AnchorKit".to_string(), None);
-                    ui.text("with wgpu!".to_string(), None);
+                    ui.text("AnchorKit".to_string(), None, None);
+                    ui.text("with wgpu!".to_string(), None, None);
                 });
             })
         });

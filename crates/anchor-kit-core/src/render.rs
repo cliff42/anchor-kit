@@ -1,6 +1,7 @@
 use crate::{
     element::{Element, ElementType},
     primitives::{color::Color, rectangle::Rectangle, text::Text},
+    style::TextStyle,
 };
 
 #[derive(Clone, Default, Debug)]
@@ -55,24 +56,24 @@ fn handle_text_element(element: &Element, render_list: &mut RenderList) {
         None => return,
     };
 
-    let color = Color {
+    let text_prim = Text {
+        text,
+        position,
+        size: element.size,
+        text_style: element.text_style.clone().unwrap_or(TextStyle::default()),
+    };
+
+    let rect_color = Color {
         r: 100,
         g: 100,
         b: 100,
         a: 255,
     };
 
-    let text_prim = Text {
-        text,
-        position,
-        size: element.size,
-        color,
-    };
-
     // TODO: placeholder rect
     let rect = Rectangle {
         position,
-        color,
+        color: rect_color,
         size: element.size,
     };
     render_list.rectangles.push(rect);
