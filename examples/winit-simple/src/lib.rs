@@ -134,7 +134,6 @@ impl State {
 
         let ui_frame_info = FrameInfo {
             size: [self.config.width, self.config.height],
-            time_ns: 0.0,
         };
 
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
@@ -171,7 +170,7 @@ impl State {
                                     ..Default::default()
                                 }),
                                 |ui| {
-                                    ui.text("test".to_string(), None);
+                                    ui.text("test".to_string(), None, None);
                                 },
                             );
                             ui.flex_row(
@@ -211,6 +210,7 @@ impl State {
                                             align_y: anchor_kit_core::style::Align::Middle,
                                             ..Default::default()
                                         }),
+                                        None,
                                     );
                                     ui.text(
                                         "World!".to_string(),
@@ -218,6 +218,7 @@ impl State {
                                             align_y: anchor_kit_core::style::Align::Middle,
                                             ..Default::default()
                                         }),
+                                        None,
                                     );
                                 },
                             );
@@ -227,8 +228,8 @@ impl State {
             );
             ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
                 ui.flex_row(None, |ui| {
-                    ui.text("AnchorKit".to_string(), None);
-                    ui.text("with wgpu!".to_string(), None);
+                    ui.text("AnchorKit".to_string(), None, None);
+                    ui.text("with wgpu!".to_string(), None, None);
                 });
             })
         });

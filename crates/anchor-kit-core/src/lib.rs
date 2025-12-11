@@ -11,11 +11,13 @@ use element::Element;
 use layout::layout_pass;
 use render::{render_pass, RenderList};
 
-use crate::{measure::measure_pass, style::Style};
+use crate::{
+    measure::measure_pass,
+    style::{Style, TextStyle},
+};
 
 pub struct FrameInfo {
     pub size: [u32; 2], // width, height
-    pub time_ns: f32,   // TODO: should we have a struct for this? -> something like SystemTime?
 }
 
 // UIState stores the actual elements
@@ -28,13 +30,7 @@ pub struct UI<'a> {
     current_element: &'a mut Element,
 }
 
-// user code will look something like this:
-// let render_list = ui_state.generate_frame(frame_info, |ui| {
-//      ui.anchor(AnchorPosition::TopLeft, [100, 100], |ui| {
-//          ui.text("hello world!");
-//      })
-// })
-
+// TODO: add more clear comments
 impl UIState {
     pub fn new(size: [u32; 2]) -> Self {
         Self {
@@ -42,7 +38,6 @@ impl UIState {
         }
     }
 
-    /// Returns a render list of primatives to send to the renderer backend integrations to draw the frame
     pub fn generate_frame<F>(&mut self, frame_info: FrameInfo, f: F) -> RenderList
     where
         F: FnOnce(&mut UI),
@@ -64,7 +59,6 @@ impl UIState {
 }
 
 impl<'a> UI<'a> {
-    // TODO: get rid of direct size param here and specify it in the style
     pub fn anchor<F>(&mut self, anchor_position: AnchorPosition, style: Option<Style>, f: F)
     where
         F: FnOnce(&mut UI),
@@ -76,9 +70,9 @@ impl<'a> UI<'a> {
         self.current_element.children.push(anchor_element);
     }
 
-    // TODO: add styling as param
-    pub fn text(&mut self, text: String, style: Option<Style>) {
-        let text_element = Element::new(element::ElementType::Text(text), style);
+    pub fn text(&mut self, text: String, style: Option<Style>, text_style: Option<TextStyle>) {
+        let text_element =
+            Element::new_text(text, style, text_style.unwrap_or(TextStyle::default()));
         self.current_element.children.push(text_element);
     }
 
@@ -104,5 +98,5 @@ impl<'a> UI<'a> {
         self.current_element.children.push(flex_column_element);
     }
 
-    // TODO: flex col, grid, text, panel, image ...
+    // TODO: grid, panel, image ...
 }

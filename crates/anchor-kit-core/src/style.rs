@@ -46,3 +46,56 @@ impl Default for Style {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+pub enum FontFamily {
+    Name(String),
+    Serif,
+    SansSerif,
+    Cursive,
+    Fantasy,
+    Monospace,
+}
+
+#[derive(Clone, Debug)]
+pub enum FontWeight {
+    Thin,
+    ExtraLight,
+    Light,
+    Normal,
+    Medium,
+    SemiBold,
+    Bold,
+    ExtraBold,
+    Black,
+}
+
+#[derive(Clone, Debug)]
+pub enum FontStyle {
+    Normal,
+    Italic,
+    Oblique,
+}
+
+// text style is pretty different (specific to text rendering) so we should keep it seperate
+// the items in this struct will be generic, and then integrate with glyphon in the wgpu integration (to allow support for other rendering frameworks in the future)
+#[derive(Clone, Debug)]
+pub struct TextStyle {
+    pub font_size: f32,
+    pub line_height: f32,
+    pub font_family: FontFamily,
+    pub font_weight: FontWeight,
+    pub font_style: FontStyle,
+}
+
+impl Default for TextStyle {
+    fn default() -> Self {
+        Self {
+            font_size: 16.0,
+            line_height: 20.0,
+            font_family: FontFamily::SansSerif,
+            font_weight: FontWeight::Normal,
+            font_style: FontStyle::Normal,
+        }
+    }
+}
