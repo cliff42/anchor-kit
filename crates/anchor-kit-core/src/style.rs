@@ -26,8 +26,10 @@ pub struct Style {
     pub margin: Insets,
     pub width: SizingPolicy,
     pub height: SizingPolicy,
-    pub align_x: Align,
+    pub align_x: Align, // element alignment
     pub align_y: Align,
+    pub justify_x: Align, // content within element alignment
+    pub justify_y: Align,
 }
 
 impl Default for Style {
@@ -39,6 +41,8 @@ impl Default for Style {
             height: SizingPolicy::Auto,
             align_x: Align::Start,
             align_y: Align::Start,
+            justify_x: Align::Start,
+            justify_y: Align::Start,
         }
     }
 }

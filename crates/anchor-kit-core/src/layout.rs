@@ -77,15 +77,42 @@ fn handle_text_element(element: &mut Element, allocated_origin: [u32; 2]) {
 
 fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2]) {
     let style = element.style;
+    let num_children = element.children.len();
     let padding_between_children: u32 = 0; // TODO: this is a placeholder for now, it should be set by styling
 
     let [ax, ay] = allocated_origin;
     element.frame_position = Some(allocated_origin);
 
-    let content_x_start = ax + style.padding.left;
+    let mut content_x_start = ax + style.padding.left;
     let content_y_start = ay + style.padding.top;
+    let total_content_width =
+        element.size[0].saturating_sub(style.padding.left + style.padding.right);
     let total_content_height =
         element.size[1].saturating_sub(style.padding.top + style.padding.bottom);
+
+    // for determining the justify style, we need to iterate over all children to acount for margins to distribute elements correctly
+    let mut content_width_with_margin: u32 = 0;
+    for c in element.children.iter() {
+        content_width_with_margin = content_width_with_margin
+            .saturating_add(c.style.margin.left)
+            .saturating_add(c.size[0])
+            .saturating_add(c.style.margin.right);
+    }
+    // need to add padding between content as well
+    if num_children > 1 {
+        let child_padding = padding_between_children * (num_children as u32 - 1);
+        content_width_with_margin = content_width_with_margin.saturating_add(child_padding);
+    }
+
+    content_x_start = match style.justify_x {
+        Align::Start => content_x_start,
+        Align::Middle => {
+            content_x_start + (total_content_width.saturating_sub(content_width_with_margin) / 2)
+        }
+        Align::End => {
+            content_x_start + total_content_width.saturating_sub(content_width_with_margin)
+        }
+    };
 
     let mut x_offset = content_x_start; // current offset of where to place the next child
 
@@ -126,15 +153,40 @@ fn handle_flex_row(element: &mut Element, allocated_origin: [u32; 2]) {
 
 fn handle_flex_column(element: &mut Element, allocated_origin: [u32; 2]) {
     let style = element.style;
+    let num_children = element.children.len();
     let padding_between_children: u32 = 0; // TODO: set by styling
 
     let [ax, ay] = allocated_origin;
     element.frame_position = Some(allocated_origin);
 
     let content_x_start = ax + style.padding.left;
-    let content_y_start = ay + style.padding.top;
+    let mut content_y_start = ay + style.padding.top;
     let total_content_width =
         element.size[0].saturating_sub(style.padding.left + style.padding.right);
+    let total_content_height =
+        element.size[1].saturating_sub(style.padding.top + style.padding.bottom);
+
+    let mut content_height_with_margin: u32 = 0;
+    for c in element.children.iter() {
+        content_height_with_margin = content_height_with_margin
+            .saturating_add(c.style.margin.top)
+            .saturating_add(c.size[1])
+            .saturating_add(c.style.margin.bottom);
+    }
+    if num_children > 1 {
+        let child_padding = padding_between_children * (num_children as u32 - 1);
+        content_height_with_margin = content_height_with_margin.saturating_add(child_padding);
+    }
+
+    content_y_start = match style.justify_y {
+        Align::Start => content_y_start,
+        Align::Middle => {
+            content_y_start + (total_content_height.saturating_sub(content_height_with_margin) / 2)
+        }
+        Align::End => {
+            content_y_start + total_content_height.saturating_sub(content_height_with_margin)
+        }
+    };
 
     let mut y_offset = content_y_start; // vertical offset for placing children
 

@@ -141,8 +141,8 @@ impl State {
             ui.anchor(
                 AnchorPosition::TopCenter,
                 Some(Style {
-                    width: SizingPolicy::Fixed(100),
-                    height: SizingPolicy::Fixed(200),
+                    width: SizingPolicy::Fixed(400),
+                    height: SizingPolicy::Fixed(600),
                     ..Default::default()
                 }),
                 |ui| {
@@ -150,6 +150,7 @@ impl State {
                         Some(Style {
                             width: SizingPolicy::FillParent,
                             height: SizingPolicy::FillParent,
+                            justify_y: anchor_kit_core::style::Align::Middle,
                             ..Default::default()
                         }),
                         |ui| {
@@ -188,7 +189,7 @@ impl State {
                                         left: 0,
                                     },
                                     width: SizingPolicy::FillParent,
-                                    height: SizingPolicy::FillParent,
+                                    justify_x: anchor_kit_core::style::Align::Middle,
                                     ..Default::default()
                                 }),
                                 |ui| {
@@ -214,7 +215,7 @@ impl State {
                                     ui.text(
                                         "World!".to_string(),
                                         Some(Style {
-                                            align_y: anchor_kit_core::style::Align::End,
+                                            align_y: anchor_kit_core::style::Align::Middle,
                                             ..Default::default()
                                         }),
                                     );
