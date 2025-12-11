@@ -191,10 +191,10 @@ impl GlyphonRenderer {
             );
 
             let text_color = glyphon::Color::rgba(
-                text_item.color.r,
-                text_item.color.g,
-                text_item.color.b,
-                text_item.color.a,
+                text_item.text_style.text_color.r,
+                text_item.text_style.text_color.g,
+                text_item.text_style.text_color.b,
+                text_item.text_style.text_color.a,
             );
 
             // TODO: these styling options should be set by the user as well
@@ -236,10 +236,10 @@ impl GlyphonRenderer {
             };
 
             let text_color = glyphon::Color::rgba(
-                text_item.color.r,
-                text_item.color.g,
-                text_item.color.b,
-                text_item.color.a,
+                text_item.text_style.text_color.r,
+                text_item.text_style.text_color.g,
+                text_item.text_style.text_color.b,
+                text_item.text_style.text_color.a,
             );
 
             text_areas.push(TextArea {

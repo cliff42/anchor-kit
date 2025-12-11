@@ -10,7 +10,7 @@ use winit::{
 
 use anchor_kit_core::{
     anchor::AnchorPosition,
-    style::{Insets, SizingPolicy, Style},
+    style::{Insets, SizingPolicy, Style, TextStyle},
 };
 use anchor_kit_core::{FrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo};
@@ -218,7 +218,20 @@ impl State {
                                             align_y: anchor_kit_core::style::Align::Middle,
                                             ..Default::default()
                                         }),
-                                        None,
+                                        Some(TextStyle {
+                                            font_size: 30.0,
+                                            line_height: 50.0,
+                                            font_family:
+                                                anchor_kit_core::style::FontFamily::Cursive,
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            font_style: anchor_kit_core::style::FontStyle::Italic,
+                                            text_color: anchor_kit_core::primitives::color::Color {
+                                                r: 0,
+                                                g: 255,
+                                                b: 0,
+                                                a: 100,
+                                            },
+                                        }),
                                     );
                                 },
                             );

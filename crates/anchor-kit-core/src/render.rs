@@ -56,19 +56,11 @@ fn handle_text_element(element: &Element, render_list: &mut RenderList) {
         None => return,
     };
 
-    let text_color = Color {
-        r: 255,
-        g: 0,
-        b: 0,
-        a: 255,
-    };
-
     let text_prim = Text {
         text,
         position,
         size: element.size,
-        color: text_color,                // TODO: get from element
-        text_style: TextStyle::default(), // TODO: get from element
+        text_style: element.text_style.clone().unwrap_or(TextStyle::default()),
     };
 
     let rect_color = Color {
