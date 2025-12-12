@@ -1,21 +1,39 @@
-use anchor_kit_core::{primitives::rectangle::Rectangle, render::RenderList};
+use anchor_kit_core::{
+    primitives::rectangle::Rectangle,
+    render::RenderList,
+    style::{FontFamily, FontStyle, FontWeight},
+};
+use glyphon::{
+    Attrs, Cache, FontSystem, Metrics, Shaping, SwashCache, TextArea, TextAtlas, TextBounds,
+    TextRenderer, Viewport,
+};
 use wgpu::include_wgsl;
 
-pub struct FrameInfo {
-    pub size_px: [f32; 2], // w, h
-    pub scale: f32,
+pub struct ScreenInfo {
+    pub size_px: [u32; 2], // w, h
+    pub scale_factor: f32, // used by glyphon to scale text
 }
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::NoUninit)] // TODO: do we need to go back to bytemuck POD/ zeroable here instead?
 struct Vertex {
-    position: [f32; 2], // x, y (normalized)
-    color: [f32; 4],    // r, g, b, a
+    position: [f32; 2],         // x, y (normalized)
+    local_uv: [f32; 2],         // uv in local units (inside the object)
+    background_color: [f32; 4], // r, g, b, a
+    border_radius: [f32; 4],    // top-left, top-right, bottom-right, bottom-left (clockwise)
+    border_width: f32,
+    border_color: [f32; 4], // r, g, b, a
 }
 
 impl Vertex {
-    const ATTRIBS: [wgpu::VertexAttribute; 2] =
-        wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x4]; // location 0 is normalized position, location 1 is colour
+    const ATTRIBS: [wgpu::VertexAttribute; 6] = wgpu::vertex_attr_array![
+        0 => Float32x2, // location 0 is normalized position
+        1 => Float32x2, // location 1 is uv in local units within the object
+        2 => Float32x4, // location 2 is colour
+        3 => Float32x4, // location 3 is border radius (also in local units)
+        4 => Float32, // location 4 is border width (also in local units)
+        5 => Float32x4 // location 5 is boder colour
+    ];
 
     fn capacity_to_bytes(capacity: usize) -> wgpu::BufferAddress {
         (capacity * std::mem::size_of::<Self>()) as wgpu::BufferAddress
@@ -56,36 +74,61 @@ fn get_index_buffer(device: &wgpu::Device, capacity_bytes: wgpu::BufferAddress) 
 // v3--v2
 fn get_vertices_and_indices_for_rectangle(
     rect: &Rectangle,
-    frame_info: &FrameInfo,
+    screen_info: &ScreenInfo,
     vertex_offset: u32,
 ) -> ([Vertex; 4], [u32; 6]) {
     let [x, y] = rect.position;
     let [w, h] = rect.size;
-    let [frame_w, frame_h] = frame_info.size_px;
+    let [screen_w, screen_h] = screen_info.size_px;
 
     // normalize pixel values
-    let x0 = x as f32 / frame_w;
-    let x1 = (x + w) as f32 / frame_w;
-    let y0 = y as f32 / frame_h;
-    let y1 = (y + h) as f32 / frame_h;
+    let x0 = x as f32 / screen_w as f32;
+    let x1 = (x + w) as f32 / screen_w as f32;
+    let y0 = y as f32 / screen_h as f32;
+    let y1 = (y + h) as f32 / screen_h as f32;
 
-    let color = rect.color.to_rgba_f32();
+    let background_color = rect.style.background_color.to_rgba_f32();
+    let border_color = rect.style.border_color.to_rgba_f32();
 
+    // convert radius to local units
+    let mut local_radius = rect.style.border_radius;
+    for r in local_radius.iter_mut() {
+        *r = (*r / w.min(h) as f32).min(0.5) // we don't want the radius exceeding 0.5 to avoid impossible rounded corners
+    }
+    let local_border_width = rect.style.border_width / w.min(h) as f32;
+
+    // for the vertices the local uv values are just the corners
     let v0 = Vertex {
         position: [x0, y0],
-        color,
+        local_uv: [0.0, 0.0],
+        background_color,
+        border_radius: local_radius,
+        border_width: local_border_width,
+        border_color,
     };
     let v1 = Vertex {
         position: [x1, y0],
-        color,
+        local_uv: [1.0, 0.0],
+        background_color,
+        border_radius: local_radius,
+        border_width: local_border_width,
+        border_color,
     };
     let v2 = Vertex {
         position: [x1, y1],
-        color,
+        local_uv: [1.0, 1.0],
+        background_color,
+        border_radius: local_radius,
+        border_width: local_border_width,
+        border_color,
     };
     let v3 = Vertex {
         position: [x0, y1],
-        color,
+        local_uv: [0.0, 1.0],
+        background_color,
+        border_radius: local_radius,
+        border_width: local_border_width,
+        border_color,
     };
 
     let vertices = [v0, v1, v2, v3];
@@ -103,16 +146,223 @@ fn get_vertices_and_indices_for_rectangle(
     (vertices, indices)
 }
 
+struct GlyphonRenderer {
+    font_system: FontSystem,
+    swash_cache: SwashCache,
+    viewport: Viewport,
+    atlas: TextAtlas,
+    text_renderer: TextRenderer,
+}
+
+impl GlyphonRenderer {
+    pub fn new(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        texture_format: wgpu::TextureFormat,
+    ) -> Self {
+        // set up glyphon text rendering (inspired by: https://github.com/grovesNL/glyphon/blob/main/examples/hello-world.rs)
+        let font_system = FontSystem::new();
+        let swash_cache = SwashCache::new();
+        let glyphon_cache = Cache::new(device);
+        let viewport = Viewport::new(device, &glyphon_cache);
+        let mut atlas = TextAtlas::new(device, queue, &glyphon_cache, texture_format);
+        let text_renderer =
+            TextRenderer::new(&mut atlas, device, wgpu::MultisampleState::default(), None);
+
+        GlyphonRenderer {
+            font_system,
+            swash_cache,
+            viewport,
+            atlas,
+            text_renderer,
+        }
+    }
+
+    pub fn render_text(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        render_pass: &mut wgpu::RenderPass<'_>,
+        screen_info: &ScreenInfo,
+        render_list: &RenderList,
+    ) {
+        // skip rendering if no text is requested
+        if render_list.text.is_empty() {
+            return;
+        }
+
+        let [screen_w, screen_h] = screen_info.size_px;
+
+        self.viewport.update(
+            queue,
+            glyphon::Resolution {
+                width: screen_w,
+                height: screen_h,
+            },
+        );
+
+        let physical_width = screen_w as f32 * screen_info.scale_factor;
+        let physical_height = screen_h as f32 * screen_info.scale_factor;
+
+        // each text item is rendered to its own `TextArea` in glyphon
+        let mut text_areas: Vec<TextArea> = Vec::with_capacity(render_list.text.len());
+
+        // we need to store the buffers so they have the same lifetime as the areas (areas use the buffers)
+        let mut text_buffers: Vec<glyphon::Buffer> = Vec::with_capacity(render_list.text.len());
+
+        for text_item in &render_list.text {
+            let text_style = &text_item.text_style;
+
+            // TODO: metrics should be set by text style passed in by user
+            let mut text_buffer = glyphon::Buffer::new(
+                &mut self.font_system,
+                Metrics::new(text_style.font_size, text_style.line_height),
+            );
+
+            text_buffer.set_size(
+                &mut self.font_system,
+                Some(physical_width),
+                Some(physical_height),
+            );
+
+            let text_color = glyphon::Color::rgba(
+                text_item.text_style.text_color.r,
+                text_item.text_style.text_color.g,
+                text_item.text_style.text_color.b,
+                text_item.text_style.text_color.a,
+            );
+
+            // TODO: these styling options should be set by the user as well
+            let text_attrs = Attrs::new()
+                .family(Self::anchor_kit_font_family_to_glyphon(
+                    &text_style.font_family,
+                ))
+                .style(Self::anchor_kit_font_style_to_glyphon(
+                    &text_style.font_style,
+                ))
+                .weight(Self::anchor_kit_font_weight_to_glyphon(
+                    &text_style.font_weight,
+                ))
+                .color(text_color);
+
+            text_buffer.set_text(
+                &mut self.font_system,
+                &text_item.text,
+                &text_attrs,
+                Shaping::Advanced,
+            );
+
+            // TODO: should we also set things like text wrap (should this be set in style)?
+            text_buffer.shape_until_scroll(&mut self.font_system, false);
+
+            text_buffers.push(text_buffer);
+        }
+
+        for (i, text_buffer) in text_buffers.iter().enumerate() {
+            let text_item = &render_list.text[i];
+
+            let [x, y] = text_item.position;
+            let [w, h] = text_item.size;
+            let text_bounds = TextBounds {
+                left: x as i32,
+                top: y as i32,
+                right: (x + w) as i32,
+                bottom: (y + h) as i32,
+            };
+
+            let text_color = glyphon::Color::rgba(
+                text_item.text_style.text_color.r,
+                text_item.text_style.text_color.g,
+                text_item.text_style.text_color.b,
+                text_item.text_style.text_color.a,
+            );
+
+            text_areas.push(TextArea {
+                buffer: &text_buffer,
+                left: x as f32,
+                top: y as f32,
+                scale: screen_info.scale_factor,
+                bounds: text_bounds,
+                default_color: text_color,
+                custom_glyphs: &[],
+            });
+        }
+
+        if let Err(err) = self.text_renderer.prepare(
+            device,
+            queue,
+            &mut self.font_system,
+            &mut self.atlas,
+            &self.viewport,
+            text_areas,
+            &mut self.swash_cache,
+        ) {
+            // TODO: add better error handling
+            println!("error with glyphon text prepare: {:?}", err);
+            return;
+        }
+
+        if let Err(err) = self
+            .text_renderer
+            .render(&mut self.atlas, &self.viewport, render_pass)
+        {
+            // TODO: add better error handling
+            println!("error with glyphon text render: {:?}", err);
+            return;
+        }
+
+        self.atlas.trim();
+    }
+
+    fn anchor_kit_font_family_to_glyphon(font_family: &FontFamily) -> glyphon::Family<'_> {
+        match font_family {
+            FontFamily::Name(name) => glyphon::Family::Name(name),
+            FontFamily::Serif => glyphon::Family::Serif,
+            FontFamily::SansSerif => glyphon::Family::SansSerif,
+            FontFamily::Cursive => glyphon::Family::Cursive,
+            FontFamily::Fantasy => glyphon::Family::Fantasy,
+            FontFamily::Monospace => glyphon::Family::Monospace,
+        }
+    }
+
+    fn anchor_kit_font_weight_to_glyphon(font_weight: &FontWeight) -> glyphon::Weight {
+        match font_weight {
+            FontWeight::Thin => glyphon::Weight::THIN,
+            FontWeight::ExtraLight => glyphon::Weight::EXTRA_LIGHT,
+            FontWeight::Light => glyphon::Weight::LIGHT,
+            FontWeight::Normal => glyphon::Weight::NORMAL,
+            FontWeight::Medium => glyphon::Weight::MEDIUM,
+            FontWeight::SemiBold => glyphon::Weight::SEMIBOLD,
+            FontWeight::Bold => glyphon::Weight::BOLD,
+            FontWeight::ExtraBold => glyphon::Weight::EXTRA_BOLD,
+            FontWeight::Black => glyphon::Weight::BLACK,
+        }
+    }
+
+    fn anchor_kit_font_style_to_glyphon(font_style: &FontStyle) -> glyphon::Style {
+        match font_style {
+            FontStyle::Normal => glyphon::Style::Normal,
+            FontStyle::Italic => glyphon::Style::Italic,
+            FontStyle::Oblique => glyphon::Style::Oblique,
+        }
+    }
+}
+
 pub struct Renderer {
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     vertex_buffer_capacity: usize,
     index_buffer: wgpu::Buffer,
     index_buffer_capacity: usize,
+    glyphon_renderer: GlyphonRenderer,
 }
 
 impl Renderer {
-    pub fn new(device: &wgpu::Device, texture_format: wgpu::TextureFormat) -> Self {
+    pub fn new(
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        texture_format: wgpu::TextureFormat,
+    ) -> Self {
         // inspired by: https://sotrh.github.io/learn-wgpu/beginner/tutorial3-pipeline/#how-do-we-use-the-shaders
         let shader = device.create_shader_module(include_wgsl!("shader.wgsl"));
 
@@ -180,18 +430,16 @@ impl Renderer {
             vertex_buffer_capacity: initial_vertex_buffer_capacity as usize,
             index_buffer,
             index_buffer_capacity: initial_index_buffer_capacity as usize,
+            glyphon_renderer: GlyphonRenderer::new(device, queue, texture_format),
         }
     }
 
-    // TODO: do we want to support resizing ever? maybe in the winit integraiton?
-
-    // TODO: we will have to get the devive and queue from adapter, as well as the render pass before we actually call this in the caller code (the example code in our case)
     pub fn render(
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         render_pass: &mut wgpu::RenderPass<'_>,
-        frame_info: &FrameInfo,
+        screen_info: &ScreenInfo,
         render_list: &RenderList,
     ) {
         let mut vertices: Vec<Vertex> = vec![];
@@ -200,7 +448,8 @@ impl Renderer {
         // convert all primatives to vertices
         for rect in &render_list.rectangles {
             // offset will increment as new vertices are added
-            let (new_vertices, new_indices) = get_vertices_and_indices_for_rectangle(rect, frame_info, vertices.len() as u32);
+            let (new_vertices, new_indices) =
+                get_vertices_and_indices_for_rectangle(rect, screen_info, vertices.len() as u32);
             vertices.extend_from_slice(&new_vertices);
             indices.extend_from_slice(&new_indices);
         }
@@ -220,6 +469,10 @@ impl Renderer {
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
         render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
         render_pass.draw_indexed(0..indices.len() as u32, 0, 0..1);
+
+        // handle text rendering with glyphon
+        self.glyphon_renderer
+            .render_text(device, queue, render_pass, screen_info, render_list);
     }
 
     fn resize_vertex_buffer_if_required(

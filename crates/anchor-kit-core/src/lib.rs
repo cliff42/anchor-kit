@@ -11,11 +11,13 @@ use element::Element;
 use layout::layout_pass;
 use render::{render_pass, RenderList};
 
-use crate::measure::measure_pass;
+use crate::{
+    measure::measure_pass,
+    style::{Style, TextStyle},
+};
 
 pub struct FrameInfo {
     pub size: [u32; 2], // width, height
-    pub time_ns: f32,   // TODO: should we have a struct for this? -> something like SystemTime?
 }
 
 // UIState stores the actual elements
@@ -28,21 +30,14 @@ pub struct UI<'a> {
     current_element: &'a mut Element,
 }
 
-// user code will look something like this:
-// let render_list = ui_state.generate_frame(frame_info, |ui| {
-//      ui.anchor(AnchorPosition::TopLeft, [100, 100], |ui| {
-//          ui.text("hello world!");
-//      })
-// })
-
+// TODO: add more clear comments
 impl UIState {
     pub fn new(size: [u32; 2]) -> Self {
         Self {
-            root: Element::new(element::ElementType::Root, size),
+            root: Element::new_root(size),
         }
     }
 
-    /// Returns a render list of primatives to send to the renderer backend integrations to draw the frame
     pub fn generate_frame<F>(&mut self, frame_info: FrameInfo, f: F) -> RenderList
     where
         F: FnOnce(&mut UI),
@@ -64,33 +59,55 @@ impl UIState {
 }
 
 impl<'a> UI<'a> {
-    pub fn anchor<F>(&mut self, anchor_position: AnchorPosition, size: [u32; 2], f: F)
+    pub fn anchor<F>(&mut self, anchor_position: AnchorPosition, style: Option<Style>, f: F)
     where
         F: FnOnce(&mut UI),
     {
-        let mut anchor_element = Element::new(element::ElementType::Anchor(anchor_position), size);
+        let mut anchor_element = Element::new(element::ElementType::Anchor(anchor_position), style);
         f(&mut UI {
             current_element: &mut anchor_element,
         }); // handle all child elements of the anchor position
         self.current_element.children.push(anchor_element);
     }
 
-    // TODO: add styling as param
-    pub fn text(&mut self, text: String) {
-        let text_element = Element::new(element::ElementType::Text(text), [0, 0]);
+    pub fn text(&mut self, text: String, style: Option<Style>, text_style: Option<TextStyle>) {
+        let text_element = Element::new_text(text, style, text_style.unwrap_or_default());
         self.current_element.children.push(text_element);
     }
 
-    pub fn flex_row<F>(&mut self, f: F)
+    pub fn flex_row<F>(&mut self, style: Option<Style>, f: F)
     where
         F: FnOnce(&mut UI),
     {
-        let mut flex_row_element = Element::new(element::ElementType::FlexRow, [0, 0]); // TODO: should flex row size be [0, 0]? - size should probably be the size of the parent element
+        let mut flex_row_element = Element::new(element::ElementType::FlexRow, style);
         f(&mut UI {
             current_element: &mut flex_row_element,
         });
         self.current_element.children.push(flex_row_element);
     }
 
-    // TODO: flex col, grid, text, panel, image ...
+    pub fn flex_column<F>(&mut self, style: Option<Style>, f: F)
+    where
+        F: FnOnce(&mut UI),
+    {
+        let mut flex_column_element = Element::new(element::ElementType::FlexColumn, style);
+        f(&mut UI {
+            current_element: &mut flex_column_element,
+        });
+        self.current_element.children.push(flex_column_element);
+    }
+
+    // pills have a closure so we can put text etc. inside of them
+    pub fn pill<F>(&mut self, style: Option<Style>, f: F)
+    where
+        F: FnOnce(&mut UI),
+    {
+        let mut pill_element = Element::new(element::ElementType::Pill, style);
+        f(&mut UI {
+            current_element: &mut pill_element,
+        });
+        self.current_element.children.push(pill_element);
+    }
+
+    // TODO: grid, panel, image ...
 }

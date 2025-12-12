@@ -8,9 +8,12 @@ use winit::{
     window::Window,
 };
 
-use anchor_kit_core::{anchor::AnchorPosition, render};
-use anchor_kit_core::{FrameInfo as UiFrameInfo, UIState};
-use anchor_kit_wgpu::{FrameInfo as GpuFrameInfo, Renderer};
+use anchor_kit_core::{
+    anchor::AnchorPosition,
+    style::{Insets, SizingPolicy, Style, TextStyle},
+};
+use anchor_kit_core::{FrameInfo, UIState};
+use anchor_kit_wgpu::{Renderer, ScreenInfo};
 
 // This will store the state of our app
 // lib.rs
@@ -27,13 +30,9 @@ pub struct State {
 }
 
 impl State {
-    // We don't need this to be async right now,
-    // but we will in the next tutorial
     pub async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         let size = window.inner_size();
 
-        // The instance is a handle to our GPU
-        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::PRIMARY,
             ..Default::default()
@@ -53,7 +52,6 @@ impl State {
             .request_device(&wgpu::DeviceDescriptor {
                 label: None,
                 required_features: wgpu::Features::empty(),
-                //experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 required_limits: wgpu::Limits::default(),
                 memory_hints: Default::default(),
                 trace: wgpu::Trace::Off,
@@ -61,9 +59,6 @@ impl State {
             .await?;
 
         let surface_caps = surface.get_capabilities(&adapter);
-        // Shader code in this tutorial assumes an sRGB surface texture. Using a different
-        // one will result in all the colors coming out darker. If you want to support non
-        // sRGB surfaces, you'll need to account for that when drawing to the frame.
         let surface_format = surface_caps
             .formats
             .iter()
@@ -82,7 +77,7 @@ impl State {
             desired_maximum_frame_latency: 2,
         };
 
-        let renderer = Renderer::new(&device, surface_format);
+        let renderer = Renderer::new(&device, &queue, surface_format);
 
         let ui_state = UIState::new([size.width, size.height]);
 
@@ -137,29 +132,150 @@ impl State {
                 label: Some("Render Encoder"),
             });
 
-        let ui_frame_info = UiFrameInfo {
+        let ui_frame_info = FrameInfo {
             size: [self.config.width, self.config.height],
-            time_ns: 0.0,
         };
 
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
-            ui.anchor(AnchorPosition::TopCenter, [600, 500], |ui| {
-                ui.flex_row(|ui| {
-                    ui.text("Hello".to_string());
-                    ui.text("World!".to_string());
-                });
-            });
-            ui.anchor(AnchorPosition::BottomLeft, [100, 200], |ui| {
-                ui.flex_row(|ui| {
-                    ui.text("AnchorKit".to_string());
-                    ui.text("with wgpu!".to_string());
+            ui.anchor(
+                AnchorPosition::TopCenter,
+                Some(Style {
+                    width: SizingPolicy::Fixed(400),
+                    height: SizingPolicy::Fixed(600),
+                    ..Default::default()
+                }),
+                |ui| {
+                    ui.flex_column(
+                        Some(Style {
+                            width: SizingPolicy::FillParent,
+                            height: SizingPolicy::FillParent,
+                            justify_y: anchor_kit_core::style::Align::Middle,
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.flex_row(
+                                Some(Style {
+                                    margin: Insets {
+                                        top: 10,
+                                        right: 10,
+                                        bottom: 20,
+                                        left: 0,
+                                    },
+                                    padding: Insets {
+                                        top: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text("test".to_string(), None, None);
+                                },
+                            );
+                            ui.flex_row(
+                                Some(Style {
+                                    margin: Insets {
+                                        top: 20,
+                                        right: 10,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    padding: Insets {
+                                        top: 0,
+                                        right: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    width: SizingPolicy::FillParent,
+                                    justify_x: anchor_kit_core::style::Align::Middle,
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        "Hello".to_string(),
+                                        Some(Style {
+                                            margin: Insets {
+                                                top: 0,
+                                                right: 10,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
+                                            padding: Insets {
+                                                top: 0,
+                                                right: 0,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
+                                            align_y: anchor_kit_core::style::Align::Middle,
+                                            ..Default::default()
+                                        }),
+                                        None,
+                                    );
+                                    ui.pill(
+                                        Some(Style {
+                                            background_color:
+                                                anchor_kit_core::primitives::color::Color {
+                                                    r: 0,
+                                                    g: 0,
+                                                    b: 255,
+                                                    a: 150,
+                                                },
+                                            border_color:
+                                                anchor_kit_core::primitives::color::Color {
+                                                    r: 255,
+                                                    g: 0,
+                                                    b: 0,
+                                                    a: 100,
+                                                },
+                                            border_radius: [5.0, 10.0, 0.0, 2.5],
+                                            border_width: 5.0,
+                                            ..Default::default()
+                                        }),
+                                        |ui| {
+                                            ui.text(
+                                                "World!".to_string(),
+                                                Some(Style {
+                                                    align_y: anchor_kit_core::style::Align::Middle,
+                                                    ..Default::default()
+                                                }),
+                                                Some(TextStyle {
+                                                    font_size: 30.0,
+                                                    line_height: 50.0,
+                                                    font_family:
+                                                        anchor_kit_core::style::FontFamily::Cursive,
+                                                    font_weight:
+                                                        anchor_kit_core::style::FontWeight::Bold,
+                                                    font_style:
+                                                        anchor_kit_core::style::FontStyle::Italic,
+                                                    text_color:
+                                                        anchor_kit_core::primitives::color::Color {
+                                                            r: 0,
+                                                            g: 255,
+                                                            b: 0,
+                                                            a: 100,
+                                                        },
+                                                }),
+                                            );
+                                        },
+                                    )
+                                },
+                            );
+                        },
+                    );
+                },
+            );
+            ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
+                ui.flex_row(None, |ui| {
+                    ui.text("AnchorKit".to_string(), None, None);
+                    ui.text("with wgpu!".to_string(), None, None);
                 });
             })
         });
 
-        let frame_info = GpuFrameInfo {
-            size_px: [self.config.width as f32, self.config.height as f32],
-            scale: 1.0,
+        let screen_info = ScreenInfo {
+            size_px: [self.config.width, self.config.height],
+            scale_factor: self.window.scale_factor() as f32,
         };
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -176,7 +292,6 @@ impl State {
                     }),
                     store: wgpu::StoreOp::Store,
                 },
-                //depth_slice: None,
             })],
             depth_stencil_attachment: None,
             occlusion_query_set: None,
@@ -187,7 +302,7 @@ impl State {
             &self.device,
             &self.queue,
             &mut render_pass,
-            &frame_info,
+            &screen_info,
             &render_list,
         );
 
