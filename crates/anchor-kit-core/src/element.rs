@@ -10,6 +10,7 @@ pub enum ElementType {
     Text(String),
     FlexRow,
     FlexColumn,
+    Pill,
     // TODO: add things like table, etc.
 }
 
@@ -28,7 +29,7 @@ impl Element {
         Self {
             _type: element_type,
             size: [0, 0], // will be overwritten if using SizingPolicy::Auto in style
-            style: style.unwrap_or(Style::default()),
+            style: style.unwrap_or_default(),
             text_style: None,
             frame_position: None,
             children: Vec::new(),
@@ -39,7 +40,7 @@ impl Element {
         Self {
             _type: ElementType::Text(text),
             size: [0, 0], // will be overwritten if using SizingPolicy::Auto in style
-            style: style.unwrap_or(Style::default()),
+            style: style.unwrap_or_default(),
             text_style: Some(text_style),
             frame_position: None,
             children: Vec::new(),
