@@ -32,6 +32,7 @@ fn handle_element_layout(
         }
         ElementType::FlexRow => handle_flex_row(element, allocated_origin),
         ElementType::FlexColumn => handle_flex_column(element, allocated_origin),
+        ElementType::Pill => handle_pill(element, allocated_origin),
     }
 }
 
@@ -222,5 +223,19 @@ fn handle_flex_column(element: &mut Element, allocated_origin: [u32; 2]) {
         y_offset = y_offset
             .saturating_add(c.size[1])
             .saturating_add(c.style.margin.bottom);
+    }
+}
+
+fn handle_pill(element: &mut Element, allocated_origin: [u32; 2]) {
+    let style = element.style;
+
+    let [ax, ay] = allocated_origin;
+    element.frame_position = Some(allocated_origin);
+
+    let content_x_start = ax + style.padding.left + style.border_width as u32;
+    let content_y_start = ay + style.padding.top + style.border_width as u32;
+
+    for c in element.children.iter_mut() {
+        handle_element_layout(c, [content_x_start, content_y_start], c.size);
     }
 }

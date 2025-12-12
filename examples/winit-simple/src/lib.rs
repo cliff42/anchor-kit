@@ -212,27 +212,53 @@ impl State {
                                         }),
                                         None,
                                     );
-                                    ui.text(
-                                        "World!".to_string(),
+                                    ui.pill(
                                         Some(Style {
-                                            align_y: anchor_kit_core::style::Align::Middle,
+                                            background_color:
+                                                anchor_kit_core::primitives::color::Color {
+                                                    r: 0,
+                                                    g: 0,
+                                                    b: 255,
+                                                    a: 150,
+                                                },
+                                            border_color:
+                                                anchor_kit_core::primitives::color::Color {
+                                                    r: 255,
+                                                    g: 0,
+                                                    b: 0,
+                                                    a: 100,
+                                                },
+                                            border_radius: [5.0, 10.0, 0.0, 2.5],
+                                            border_width: 5.0,
                                             ..Default::default()
                                         }),
-                                        Some(TextStyle {
-                                            font_size: 30.0,
-                                            line_height: 50.0,
-                                            font_family:
-                                                anchor_kit_core::style::FontFamily::Cursive,
-                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
-                                            font_style: anchor_kit_core::style::FontStyle::Italic,
-                                            text_color: anchor_kit_core::primitives::color::Color {
-                                                r: 0,
-                                                g: 255,
-                                                b: 0,
-                                                a: 100,
-                                            },
-                                        }),
-                                    );
+                                        |ui| {
+                                            ui.text(
+                                                "World!".to_string(),
+                                                Some(Style {
+                                                    align_y: anchor_kit_core::style::Align::Middle,
+                                                    ..Default::default()
+                                                }),
+                                                Some(TextStyle {
+                                                    font_size: 30.0,
+                                                    line_height: 50.0,
+                                                    font_family:
+                                                        anchor_kit_core::style::FontFamily::Cursive,
+                                                    font_weight:
+                                                        anchor_kit_core::style::FontWeight::Bold,
+                                                    font_style:
+                                                        anchor_kit_core::style::FontStyle::Italic,
+                                                    text_color:
+                                                        anchor_kit_core::primitives::color::Color {
+                                                            r: 0,
+                                                            g: 255,
+                                                            b: 0,
+                                                            a: 100,
+                                                        },
+                                                }),
+                                            );
+                                        },
+                                    )
                                 },
                             );
                         },

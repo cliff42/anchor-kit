@@ -71,8 +71,7 @@ impl<'a> UI<'a> {
     }
 
     pub fn text(&mut self, text: String, style: Option<Style>, text_style: Option<TextStyle>) {
-        let text_element =
-            Element::new_text(text, style, text_style.unwrap_or(TextStyle::default()));
+        let text_element = Element::new_text(text, style, text_style.unwrap_or_default());
         self.current_element.children.push(text_element);
     }
 
@@ -96,6 +95,18 @@ impl<'a> UI<'a> {
             current_element: &mut flex_column_element,
         });
         self.current_element.children.push(flex_column_element);
+    }
+
+    // pills have a closure so we can put text etc. inside of them
+    pub fn pill<F>(&mut self, style: Option<Style>, f: F)
+    where
+        F: FnOnce(&mut UI),
+    {
+        let mut pill_element = Element::new(element::ElementType::Pill, style);
+        f(&mut UI {
+            current_element: &mut pill_element,
+        });
+        self.current_element.children.push(pill_element);
     }
 
     // TODO: grid, panel, image ...

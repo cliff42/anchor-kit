@@ -30,6 +30,7 @@ fn measure_element_size(element: &mut Element, constraints: &Constraints) -> [u3
         ElementType::Text(text) => measure_text_element_size(&text, element, constraints),
         ElementType::FlexRow => measure_flex_row_element_size(element, constraints),
         ElementType::FlexColumn => measure_flex_column_size(element, constraints),
+        ElementType::Pill => measure_pill_size(element, constraints),
     }
 }
 
@@ -209,6 +210,54 @@ fn measure_flex_column_size(element: &mut Element, constraints: &Constraints) ->
 
     let element_width = size_from_policy(style.width, padded_width, max_width);
     let element_height = size_from_policy(style.height, padded_height, max_height);
+
+    element.size = [element_width, element_height];
+    element.size
+}
+
+fn measure_pill_size(element: &mut Element, constraints: &Constraints) -> [u32; 2] {
+    let style = element.style;
+
+    // we need to account for the pills border here as well (* 2 for width and height for left/right and top/bottom)
+    let child_constraints_w = constraints.max_size[0]
+        .saturating_sub(style.padding.left + style.padding.right)
+        .saturating_sub(style.border_width as u32 * 2);
+    let child_constraints_h = constraints.max_size[1]
+        .saturating_sub(style.padding.top + style.padding.bottom)
+        .saturating_sub(style.border_width as u32 * 2);
+    let child_constraints = Constraints {
+        max_size: [child_constraints_w, child_constraints_h],
+    };
+
+    // pills behave like anchors in this case, where their size is based on the size of their content
+    let mut max_child_width = 0;
+    let mut max_child_height = 0;
+    // measure child elements first to get their sizes
+    for c in element.children.iter_mut() {
+        let child_size = measure_element_size(c, &child_constraints);
+
+        let child_margin_width = child_size[0]
+            .saturating_add(c.style.margin.left)
+            .saturating_add(c.style.margin.right);
+        let child_margin_height = child_size[1]
+            .saturating_add(c.style.margin.top)
+            .saturating_add(c.style.margin.bottom);
+
+        max_child_width = max_child_width.max(child_margin_width);
+        max_child_height = max_child_height.max(child_margin_height);
+    }
+
+    let padded_width = max_child_width
+        + style.padding.left
+        + style.padding.right
+        + (style.border_width as u32 * 2);
+    let padded_height = max_child_height
+        + style.padding.top
+        + style.padding.bottom
+        + (style.border_width as u32 * 2);
+
+    let element_width = size_from_policy(style.width, padded_width, constraints.max_size[0]);
+    let element_height = size_from_policy(style.height, padded_height, constraints.max_size[1]);
 
     element.size = [element_width, element_height];
     element.size

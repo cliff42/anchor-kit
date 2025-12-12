@@ -17,13 +17,23 @@ pub struct ScreenInfo {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::NoUninit)] // TODO: do we need to go back to bytemuck POD/ zeroable here instead?
 struct Vertex {
-    position: [f32; 2], // x, y (normalized)
-    color: [f32; 4],    // r, g, b, a
+    position: [f32; 2],         // x, y (normalized)
+    local_uv: [f32; 2],         // uv in local units (inside the object)
+    background_color: [f32; 4], // r, g, b, a
+    border_radius: [f32; 4],    // top-left, top-right, bottom-right, bottom-left (clockwise)
+    border_width: f32,
+    border_color: [f32; 4], // r, g, b, a
 }
 
 impl Vertex {
-    const ATTRIBS: [wgpu::VertexAttribute; 2] =
-        wgpu::vertex_attr_array![0 => Float32x2, 1 => Float32x4]; // location 0 is normalized position, location 1 is colour
+    const ATTRIBS: [wgpu::VertexAttribute; 6] = wgpu::vertex_attr_array![
+        0 => Float32x2, // location 0 is normalized position
+        1 => Float32x2, // location 1 is uv in local units within the object
+        2 => Float32x4, // location 2 is colour
+        3 => Float32x4, // location 3 is border radius (also in local units)
+        4 => Float32, // location 4 is border width (also in local units)
+        5 => Float32x4 // location 5 is boder colour
+    ];
 
     fn capacity_to_bytes(capacity: usize) -> wgpu::BufferAddress {
         (capacity * std::mem::size_of::<Self>()) as wgpu::BufferAddress
@@ -77,23 +87,48 @@ fn get_vertices_and_indices_for_rectangle(
     let y0 = y as f32 / screen_h as f32;
     let y1 = (y + h) as f32 / screen_h as f32;
 
-    let color = rect.color.to_rgba_f32();
+    let background_color = rect.style.background_color.to_rgba_f32();
+    let border_color = rect.style.border_color.to_rgba_f32();
 
+    // convert radius to local units
+    let mut local_radius = rect.style.border_radius;
+    for r in local_radius.iter_mut() {
+        *r = (*r / w.min(h) as f32).min(0.5) // we don't want the radius exceeding 0.5 to avoid impossible rounded corners
+    }
+    let local_border_width = rect.style.border_width / w.min(h) as f32;
+
+    // for the vertices the local uv values are just the corners
     let v0 = Vertex {
         position: [x0, y0],
-        color,
+        local_uv: [0.0, 0.0],
+        background_color,
+        border_radius: local_radius,
+        border_width: local_border_width,
+        border_color,
     };
     let v1 = Vertex {
         position: [x1, y0],
-        color,
+        local_uv: [1.0, 0.0],
+        background_color,
+        border_radius: local_radius,
+        border_width: local_border_width,
+        border_color,
     };
     let v2 = Vertex {
         position: [x1, y1],
-        color,
+        local_uv: [1.0, 1.0],
+        background_color,
+        border_radius: local_radius,
+        border_width: local_border_width,
+        border_color,
     };
     let v3 = Vertex {
         position: [x0, y1],
-        color,
+        local_uv: [0.0, 1.0],
+        background_color,
+        border_radius: local_radius,
+        border_width: local_border_width,
+        border_color,
     };
 
     let vertices = [v0, v1, v2, v3];

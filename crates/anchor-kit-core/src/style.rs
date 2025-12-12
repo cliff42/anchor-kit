@@ -34,6 +34,8 @@ pub struct Style {
     pub justify_y: Align,
     pub background_color: Color,
     pub border_color: Color,
+    pub border_radius: [f32; 4], // top-left, top-right, bottom-right, bottom-left (clockwise)
+    pub border_width: f32,       // thickness of border
 }
 
 impl Default for Style {
@@ -49,6 +51,8 @@ impl Default for Style {
             justify_y: Align::Start,
             background_color: Color::default(),
             border_color: Color::default(),
+            border_radius: [0.0, 0.0, 0.0, 0.0],
+            border_width: 0.0,
         }
     }
 }
