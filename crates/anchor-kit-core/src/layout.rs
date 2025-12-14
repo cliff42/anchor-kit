@@ -34,6 +34,7 @@ fn handle_element_layout(
         ElementType::FlexColumn => handle_flex_column(element, allocated_origin),
         ElementType::Pill => handle_pill(element, allocated_origin),
         ElementType::Image(_) => handle_image(element, allocated_origin),
+        ElementType::Divider(_, _) => handle_divider(element, allocated_origin),
     }
 }
 
@@ -242,5 +243,9 @@ fn handle_pill(element: &mut Element, allocated_origin: [u32; 2]) {
 }
 
 fn handle_image(element: &mut Element, allocated_origin: [u32; 2]) {
+    element.frame_position = Some(allocated_origin);
+}
+
+fn handle_divider(element: &mut Element, allocated_origin: [u32; 2]) {
     element.frame_position = Some(allocated_origin);
 }

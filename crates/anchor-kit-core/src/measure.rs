@@ -1,5 +1,5 @@
 use crate::{
-    element::{Element, ElementType},
+    element::{DividerOrientation, Element, ElementType},
     style::{SizingPolicy, TextStyle},
     FrameInfo,
 };
@@ -32,6 +32,9 @@ fn measure_element_size(element: &mut Element, constraints: &Constraints) -> [u3
         ElementType::FlexColumn => measure_flex_column_size(element, constraints),
         ElementType::Pill => measure_pill_size(element, constraints),
         ElementType::Image(_) => measure_image_size(element, constraints),
+        ElementType::Divider(orientation, thickness) => {
+            measure_divider_size(orientation, thickness, element, constraints)
+        }
     }
 }
 
@@ -273,5 +276,37 @@ fn measure_image_size(element: &mut Element, constraints: &Constraints) -> [u32;
     let element_height = size_from_policy(style.height, default_size, constraints.max_size[1]);
 
     element.size = [element_width, element_height];
+    element.size
+}
+
+fn measure_divider_size(
+    orientation: DividerOrientation,
+    thickness: u32,
+    element: &mut Element,
+    constraints: &Constraints,
+) -> [u32; 2] {
+    let style = element.style;
+
+    let element_size: [u32; 2] = match orientation {
+        // takes up entire width, but only thickness height
+        DividerOrientation::Horizontal => [
+            constraints.max_size[0],
+            thickness
+                .saturating_add(style.padding.top)
+                .saturating_add(style.padding.bottom)
+                .saturating_add(style.margin.left)
+                .saturating_add(style.margin.right),
+        ],
+        // takes up entire height but only thickness width
+        DividerOrientation::Vertical => [
+            thickness
+                .saturating_add(style.padding.left)
+                .saturating_add(style.padding.right)
+                .saturating_add(style.margin.left)
+                .saturating_add(style.margin.right),
+            constraints.max_size[1],
+        ],
+    };
+    element.size = element_size;
     element.size
 }

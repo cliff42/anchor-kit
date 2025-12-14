@@ -152,6 +152,19 @@ impl State {
                     ..Default::default()
                 }),
                 |ui| {
+                    ui.divider(
+                        anchor_kit_core::element::DividerOrientation::Vertical,
+                        1,
+                        Some(Style {
+                            background_color: anchor_kit_core::primitives::color::Color {
+                                r: 255,
+                                g: 0,
+                                b: 0,
+                                a: 255,
+                            },
+                            ..Default::default()
+                        }),
+                    );
                     ui.flex_column(
                         Some(Style {
                             width: SizingPolicy::FillParent,
@@ -165,8 +178,21 @@ impl State {
                                 Some(Style {
                                     width: SizingPolicy::Fixed(200),
                                     height: SizingPolicy::Fixed(250),
+                                    border_color: anchor_kit_core::primitives::color::Color {
+                                        r: 200,
+                                        g: 200,
+                                        b: 255,
+                                        a: 150,
+                                    },
+                                    border_radius: [10.0, 10.0, 10.0, 10.0],
+                                    border_width: 2.0,
                                     ..Default::default()
                                 }),
+                            );
+                            ui.divider(
+                                anchor_kit_core::element::DividerOrientation::Horizontal,
+                                2,
+                                None,
                             );
                             ui.flex_row(
                                 Some(Style {
