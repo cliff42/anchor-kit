@@ -16,9 +16,6 @@ use anchor_kit_core::{
 use anchor_kit_core::{FrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo};
 
-// This will store the state of our app
-// lib.rs
-
 pub struct State {
     renderer: Renderer,
     ui_state: UIState,
@@ -123,7 +120,6 @@ impl State {
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         self.window.request_redraw();
 
-        // We can't render unless the surface is configured
         if !self.is_surface_configured {
             return Ok(());
         }
@@ -269,8 +265,11 @@ impl State {
                                                     b: 0,
                                                     a: 100,
                                                 },
-                                            border_radius: [5.0, 10.0, 0.0, 2.5],
+                                            border_radius: [50.0, 50.0, 50.0, 50.0],
                                             border_width: 5.0,
+                                            justify_x: anchor_kit_core::style::Align::Middle,
+                                            width: SizingPolicy::Fixed(200),
+                                            height: SizingPolicy::Fixed(75),
                                             ..Default::default()
                                         }),
                                         |ui| {
@@ -400,7 +399,6 @@ impl ApplicationHandler<State> for App {
                 state.update();
                 match state.render() {
                     Ok(_) => {}
-                    // Reconfig the surface if lost or outdated
                     Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
                         let size = state.window.inner_size();
                         state.resize(size.width, size.height);
@@ -424,7 +422,6 @@ impl ApplicationHandler<State> for App {
     }
 }
 
-// TODO: stop this example from re_rendering constantly (only render 1 frame)
 pub fn run() -> anyhow::Result<()> {
     env_logger::init();
 
