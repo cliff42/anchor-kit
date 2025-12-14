@@ -33,6 +33,7 @@ fn handle_element_layout(
         ElementType::FlexRow => handle_flex_row(element, allocated_origin),
         ElementType::FlexColumn => handle_flex_column(element, allocated_origin),
         ElementType::Pill => handle_pill(element, allocated_origin),
+        ElementType::Image(_) => handle_image(element, allocated_origin),
     }
 }
 
@@ -238,4 +239,8 @@ fn handle_pill(element: &mut Element, allocated_origin: [u32; 2]) {
     for c in element.children.iter_mut() {
         handle_element_layout(c, [content_x_start, content_y_start], c.size);
     }
+}
+
+fn handle_image(element: &mut Element, allocated_origin: [u32; 2]) {
+    element.frame_position = Some(allocated_origin);
 }

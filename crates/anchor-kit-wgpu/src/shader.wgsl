@@ -66,7 +66,6 @@ fn sdf_rounded(in: SDFInput) -> f32 {
     return min(max(q[0], q[1]), 0.0) + length(max(q, vec2<f32>(0.0, 0.0))) - radius_to_choose;
 }
 
-// TODO: add texture sampling later for images etc.
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // center at 0,0
@@ -90,5 +89,36 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var output_color = vec4<f32>(0.0, 0.0, 0.0, 0.0);
     output_color += border * in.border_color;
     output_color += fill * in.background_color;
+    return output_color;
+}
+
+@group(0) @binding(0)
+var t_diffuse: texture_2d<f32>;
+@group(0) @binding(1)
+var s_diffuse: sampler;
+
+@fragment
+fn fs_image(in: VertexOutput) -> @location(0) vec4<f32> {
+    // center at 0,0
+    let position = in.local_uv - vec2<f32>(0.5, 0.5);
+    let half_size = vec2<f32>(0.5, 0.5);
+
+    var sdf_input: SDFInput;
+    sdf_input.position = position;
+    sdf_input.half_size = half_size;
+    sdf_input.border_radius = in.border_radius_local;
+    let d = sdf_rounded(sdf_input);
+
+    // basic anti aliasing to get smooth corners
+    let anti_aliasing = 1.0 / 50;
+    let alpha_mul = 1.0 - smoothstep(0.0, anti_aliasing, d);
+
+    // we need negative border width since with sdf d < 0.0 means inside the shape
+    let border = (smoothstep(-in.border_width_local - anti_aliasing, -in.border_width_local + anti_aliasing, d) * (1.0 - smoothstep(0.0 - anti_aliasing, 0.0 + anti_aliasing, d))) * alpha_mul;
+    let fill = (1.0 - smoothstep(-in.border_width_local - anti_aliasing, -in.border_width_local + anti_aliasing, d)) * alpha_mul;
+
+    var output_color = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+    output_color += border * in.border_color;
+    output_color += fill * textureSample(t_diffuse, s_diffuse, in.local_uv); // use the texture from the bindings for the fill colour
     return output_color;
 }

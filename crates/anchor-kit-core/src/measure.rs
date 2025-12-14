@@ -31,6 +31,7 @@ fn measure_element_size(element: &mut Element, constraints: &Constraints) -> [u3
         ElementType::FlexRow => measure_flex_row_element_size(element, constraints),
         ElementType::FlexColumn => measure_flex_column_size(element, constraints),
         ElementType::Pill => measure_pill_size(element, constraints),
+        ElementType::Image(_) => measure_image_size(element, constraints),
     }
 }
 
@@ -38,7 +39,7 @@ fn size_from_policy(sizing_policy: SizingPolicy, children_size: u32, parent_size
     match sizing_policy {
         SizingPolicy::Auto => children_size.min(parent_size), // if size of children is larger than the parent we should still go with the parent size
         SizingPolicy::FillParent => parent_size,
-        SizingPolicy::Fixed(s) => s,
+        SizingPolicy::Fixed(s) => s, // TODO: fixed sizing should still account for margins and padding etc.
     }
 }
 
@@ -258,6 +259,18 @@ fn measure_pill_size(element: &mut Element, constraints: &Constraints) -> [u32; 
 
     let element_width = size_from_policy(style.width, padded_width, constraints.max_size[0]);
     let element_height = size_from_policy(style.height, padded_height, constraints.max_size[1]);
+
+    element.size = [element_width, element_height];
+    element.size
+}
+
+fn measure_image_size(element: &mut Element, constraints: &Constraints) -> [u32; 2] {
+    let style = element.style;
+
+    let default_size = 64; // just us a 64x64 size if the user doesn't set a fixed size for their image in styling
+
+    let element_width = size_from_policy(style.width, default_size, constraints.max_size[0]);
+    let element_height = size_from_policy(style.height, default_size, constraints.max_size[1]);
 
     element.size = [element_width, element_height];
     element.size

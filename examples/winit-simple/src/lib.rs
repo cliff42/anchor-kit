@@ -1,5 +1,6 @@
 use std::{iter, sync::Arc};
 
+use uuid::Uuid;
 use winit::{
     application::ApplicationHandler,
     event::*,
@@ -27,6 +28,7 @@ pub struct State {
     config: wgpu::SurfaceConfiguration,
     is_surface_configured: bool,
     window: Arc<Window>,
+    image_id: Uuid, // just one image id here for the example, in reality these should be managed better
 }
 
 impl State {
@@ -77,9 +79,13 @@ impl State {
             desired_maximum_frame_latency: 2,
         };
 
-        let renderer = Renderer::new(&device, &queue, surface_format);
+        let mut renderer = Renderer::new(&device, &queue, surface_format);
 
         let ui_state = UIState::new([size.width, size.height]);
+
+        // for image rendering
+        let diffuse_bytes = include_bytes!("test.png");
+        let image_id = renderer.get_image_id_from_bytes(&device, &queue, diffuse_bytes);
 
         Ok(Self {
             renderer,
@@ -90,6 +96,7 @@ impl State {
             config,
             is_surface_configured: false,
             window,
+            image_id,
         })
     }
 
@@ -153,6 +160,14 @@ impl State {
                             ..Default::default()
                         }),
                         |ui| {
+                            ui.image(
+                                self.image_id,
+                                Some(Style {
+                                    width: SizingPolicy::Fixed(200),
+                                    height: SizingPolicy::Fixed(250),
+                                    ..Default::default()
+                                }),
+                            );
                             ui.flex_row(
                                 Some(Style {
                                     margin: Insets {
@@ -383,6 +398,7 @@ impl ApplicationHandler<State> for App {
     }
 }
 
+// TODO: stop this example from re_rendering constantly (only render 1 frame)
 pub fn run() -> anyhow::Result<()> {
     env_logger::init();
 
