@@ -27,16 +27,18 @@ struct Vertex {
     border_radius: [f32; 4],    // top-left, top-right, bottom-right, bottom-left (clockwise)
     border_width: f32,
     border_color: [f32; 4], // r, g, b, a
+    scale: [f32; 2],        // scale x,y to w,h
 }
 
 impl Vertex {
-    const ATTRIBS: [wgpu::VertexAttribute; 6] = wgpu::vertex_attr_array![
+    const ATTRIBS: [wgpu::VertexAttribute; 7] = wgpu::vertex_attr_array![
         0 => Float32x2, // location 0 is normalized position
         1 => Float32x2, // location 1 is uv in local units within the object
         2 => Float32x4, // location 2 is colour
         3 => Float32x4, // location 3 is border radius (also in local units)
         4 => Float32, // location 4 is border width (also in local units)
         5 => Float32x4, // location 5 is boder colour
+        6 => Float32x2, // location 6 is the scale
     ];
 
     fn capacity_to_bytes(capacity: usize) -> wgpu::BufferAddress {
@@ -83,6 +85,12 @@ fn get_vertices_and_indices_for_rectangle(
 ) -> ([Vertex; 4], [u32; 6]) {
     let [x, y] = rect.position;
     let [w, h] = rect.size;
+    let scale_axis = w.min(h) as f32;
+    let scale = if scale_axis <= 0.0 {
+        [1.0, 1.0]
+    } else {
+        [(w as f32) / scale_axis, (h as f32) / scale_axis]
+    };
     let [screen_w, screen_h] = screen_info.size_px;
 
     // normalize pixel values
@@ -109,6 +117,7 @@ fn get_vertices_and_indices_for_rectangle(
         border_radius: local_radius,
         border_width: local_border_width,
         border_color,
+        scale,
     };
     let v1 = Vertex {
         position: [x1, y0],
@@ -117,6 +126,7 @@ fn get_vertices_and_indices_for_rectangle(
         border_radius: local_radius,
         border_width: local_border_width,
         border_color,
+        scale,
     };
     let v2 = Vertex {
         position: [x1, y1],
@@ -125,6 +135,7 @@ fn get_vertices_and_indices_for_rectangle(
         border_radius: local_radius,
         border_width: local_border_width,
         border_color,
+        scale,
     };
     let v3 = Vertex {
         position: [x0, y1],
@@ -133,6 +144,7 @@ fn get_vertices_and_indices_for_rectangle(
         border_radius: local_radius,
         border_width: local_border_width,
         border_color,
+        scale,
     };
 
     let vertices = [v0, v1, v2, v3];

@@ -5,6 +5,7 @@ struct VertexInput {
     @location(3) border_radius_local: vec4<f32>, // top-left, top-right, bottom-right, bottom-left (clockwise) in local units (0-1)
     @location(4) border_width_local: f32, // in local units (0-1)
     @location(5) border_color: vec4<f32>, // r, g, b, a
+    @location(6) scale: vec2<f32>,
 }
 
 struct VertexOutput {
@@ -14,6 +15,7 @@ struct VertexOutput {
     @location(2) border_radius_local: vec4<f32>, // top-left, top-right, bottom-right, bottom-left (clockwise)
     @location(3) border_width_local: f32,
     @location(4) border_color: vec4<f32>, // r, g, b, a
+    @location(6) scale: vec2<f32>,
 };
 
 @vertex
@@ -30,6 +32,7 @@ fn vs_main(
     out.border_radius_local = model.border_radius_local;
     out.border_width_local = model.border_width_local;
     out.border_color = model.border_color;
+    out.scale = model.scale;
     return out;
 }
 
@@ -68,9 +71,11 @@ fn sdf_rounded(in: SDFInput) -> f32 {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    // center at 0,0
-    let position = in.local_uv - vec2<f32>(0.5, 0.5);
-    let half_size = vec2<f32>(0.5, 0.5);
+    // center at 0,0 (modify with aspect ratio)
+    var position = in.local_uv - vec2<f32>(0.5, 0.5);
+    position *= in.scale;
+    var half_size = vec2<f32>(0.5, 0.5);
+    half_size *= in.scale;
 
     var sdf_input: SDFInput;
     sdf_input.position = position;
@@ -99,9 +104,11 @@ var s_diffuse: sampler;
 
 @fragment
 fn fs_image(in: VertexOutput) -> @location(0) vec4<f32> {
-    // center at 0,0
-    let position = in.local_uv - vec2<f32>(0.5, 0.5);
-    let half_size = vec2<f32>(0.5, 0.5);
+    // center at 0,0 (modify with aspect ratio)
+    var position = in.local_uv - vec2<f32>(0.5, 0.5);
+    position *= in.scale;
+    var half_size = vec2<f32>(0.5, 0.5);
+    half_size *= in.scale;
 
     var sdf_input: SDFInput;
     sdf_input.position = position;

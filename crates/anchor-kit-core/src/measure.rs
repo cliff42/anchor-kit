@@ -58,7 +58,7 @@ fn measure_text_element_size(
         .as_ref()
         .unwrap_or(&text_style_default_binding);
 
-    let char_w = text_style.font_size * 0.5; // TODO: is this a good enough guess?
+    let char_w = text_style.font_size * 0.5; // this is just best effort right now, in a future update we should handle this better
     let text_width = (text.chars().count() as f32 * char_w) as u32;
     let text_height = text_style.line_height as u32;
 

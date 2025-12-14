@@ -1,3 +1,3 @@
 # anchor-kit
 
-## Final Report
+anchor-kit is a lightweight, immediate-mode UI rendering library for non-interactive overlay data visualization. It enables responsive layouts, so users don't have worry about resizing their elements manually when data changes, while still enabling a simple immediate-mode rendering framework. This is posisble since anchor-kit is purpose-built for non-interactive cases where no user input events are expected.
