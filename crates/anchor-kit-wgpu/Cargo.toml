@@ -2,6 +2,7 @@
 name = "anchor-kit-wgpu"
 version = "0.1.0"
 edition = "2021"
+description = "anchor-kit wgpu integration"
 repository = "https://github.com/cliff42/anchor-kit"
 license = "MIT OR Apache-2.0"
 keywords = ["rendering", "graphics", "immediate+mode"]
