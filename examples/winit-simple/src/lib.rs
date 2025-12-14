@@ -165,6 +165,14 @@ impl State {
                                 Some(Style {
                                     width: SizingPolicy::Fixed(200),
                                     height: SizingPolicy::Fixed(250),
+                                    border_color: anchor_kit_core::primitives::color::Color {
+                                        r: 200,
+                                        g: 200,
+                                        b: 255,
+                                        a: 150,
+                                    },
+                                    border_radius: [10.0, 10.0, 10.0, 10.0],
+                                    border_width: 2.0,
                                     ..Default::default()
                                 }),
                             );
