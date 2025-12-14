@@ -10,6 +10,7 @@ use anchor::AnchorPosition;
 use element::Element;
 use layout::layout_pass;
 use render::{render_pass, RenderList};
+use uuid::Uuid;
 
 use crate::{
     measure::measure_pass,
@@ -109,5 +110,8 @@ impl<'a> UI<'a> {
         self.current_element.children.push(pill_element);
     }
 
-    // TODO: grid, panel, image ...
+    pub fn image(&mut self, texture_id: Uuid, style: Option<Style>) {
+        let image_element = Element::new_image(texture_id, style);
+        self.current_element.children.push(image_element);
+    }
 }
