@@ -3,9 +3,7 @@ use crate::{anchor::AnchorPosition, element::ElementType, style::Align, Element,
 const FRAME_ORIGIN: [u32; 2] = [0, 0];
 
 pub fn layout_pass(root: &mut Element, frame_info: &FrameInfo) {
-    // TODO: add some way to check that the tree passed in is valid? and will fit in the window size before rendering
-    // TODO: think about a way to avoid running this every frame unless required (maybe only on data change etc) -> (ie) a super simple retained mode)?
-
+    // TODO: add some way to check that the tree passed in is valid, and will fit in the window size before rendering
     for c in root.children.iter_mut() {
         // for all top-level elements the parent position is the frame origin, and parent size is just the entire frame's resolution
         handle_element_layout(c, FRAME_ORIGIN, frame_info.size);
@@ -19,7 +17,6 @@ fn handle_element_layout(
 ) {
     match element._type.clone() {
         ElementType::Root => {
-            // TODO: should we panic here? or bubble up an error instead? (should probably have a check to make sure the tree is valid by not having 2 roots)
             for c in element.children.iter_mut() {
                 handle_element_layout(c, allocated_origin, allocated_size);
             }

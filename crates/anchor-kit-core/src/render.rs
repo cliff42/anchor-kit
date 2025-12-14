@@ -19,7 +19,6 @@ pub fn render_pass(root: &Element, render_list: &mut RenderList) {
 pub fn handle_element_render(element: &Element, render_list: &mut RenderList) {
     match &element._type {
         ElementType::Root => {
-            // TODO: should eventually error here as well
             for c in element.children.iter() {
                 handle_element_render(c, render_list);
             }

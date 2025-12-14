@@ -248,7 +248,6 @@ impl GlyphonRenderer {
                 text_item.text_style.text_color.a,
             );
 
-            // TODO: these styling options should be set by the user as well
             let text_attrs = Attrs::new()
                 .family(Self::anchor_kit_font_family_to_glyphon(
                     &text_style.font_family,
