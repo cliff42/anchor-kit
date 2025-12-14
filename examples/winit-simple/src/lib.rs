@@ -152,6 +152,19 @@ impl State {
                     ..Default::default()
                 }),
                 |ui| {
+                    ui.divider(
+                        anchor_kit_core::element::DividerOrientation::Vertical,
+                        1,
+                        Some(Style {
+                            background_color: anchor_kit_core::primitives::color::Color {
+                                r: 255,
+                                g: 0,
+                                b: 0,
+                                a: 255,
+                            },
+                            ..Default::default()
+                        }),
+                    );
                     ui.flex_column(
                         Some(Style {
                             width: SizingPolicy::FillParent,
@@ -175,6 +188,11 @@ impl State {
                                     border_width: 2.0,
                                     ..Default::default()
                                 }),
+                            );
+                            ui.divider(
+                                anchor_kit_core::element::DividerOrientation::Horizontal,
+                                2,
+                                None,
                             );
                             ui.flex_row(
                                 Some(Style {

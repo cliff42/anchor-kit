@@ -51,6 +51,9 @@ pub fn handle_element_render(element: &Element, render_list: &mut RenderList) {
         ElementType::Image(_) => {
             handle_image_element(element, render_list);
         }
+        ElementType::Divider(_, _) => {
+            handle_divider_element(element, render_list);
+        }
     }
 }
 
@@ -106,4 +109,16 @@ fn handle_image_element(element: &Element, render_list: &mut RenderList) {
         },
     };
     render_list.images.push(image_prim);
+}
+
+fn handle_divider_element(element: &Element, render_list: &mut RenderList) {
+    let position = match &element.frame_position {
+        Some(pos) => *pos,
+        None => return,
+    };
+    render_list.rectangles.push(Rectangle {
+        position,
+        size: element.size,
+        style: element.style,
+    });
 }
