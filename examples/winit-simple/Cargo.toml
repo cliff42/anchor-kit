@@ -12,5 +12,5 @@ wgpu = "25.0.2"
 pollster = "0.3"
 uuid = { version = "1.19.0", features = ["v4"] }
 
-anchor-kit-core = { path = "../../crates/anchor-kit-core" }
 anchor-kit-wgpu = { path = "../../crates/anchor-kit-wgpu" }
+anchor-kit-core.workspace = true
