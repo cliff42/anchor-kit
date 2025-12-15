@@ -167,6 +167,7 @@ impl State {
             size: [self.config.width, self.config.height],
         };
 
+        // HERE IS WHERE anchor-kit GUIS ARE CREATED (UPDATE THIS RENDER LIST GENERATION)
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
             ui.anchor(AnchorPosition::TopCenter, None, |ui| {
                 ui.flex_row(
