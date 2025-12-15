@@ -92,6 +92,13 @@ self.queue.submit(iter::once(encoder.finish())); // submit everything to be rend
 
 <img width="569" height="448" alt="Screenshot 2025-12-15 at 2 41 27 AM" src="https://github.com/user-attachments/assets/a67a78a0-96e4-44f1-b822-ef76854a1e5c" />
 
+**Overlay Example:**
+
+
+https://github.com/user-attachments/assets/815acfab-0847-4df1-992b-09b16ae6940d
+
+
+
 ## Developer's Guide
 
 ## Reproducibility Guide
