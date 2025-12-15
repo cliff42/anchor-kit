@@ -32,6 +32,8 @@ The core functionality behind anchor-kit is the simple API it provides for users
 
 This makes creating GUIs with anchor-kit relatively simple, and it essentially boils down to two new additions to the user’s existing pipeline:
 
+Example:
+
 ```
 ... (wgpu/ winit setup)
 
