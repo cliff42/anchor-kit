@@ -5,6 +5,7 @@ struct VertexInput {
     @location(3) border_radius_local: vec4<f32>, // top-left, top-right, bottom-right, bottom-left (clockwise) in local units (0-1)
     @location(4) border_width_local: f32, // in local units (0-1)
     @location(5) border_color: vec4<f32>, // r, g, b, a
+    @location(6) scale: vec2<f32>,
 }
 
 struct VertexOutput {
@@ -14,6 +15,7 @@ struct VertexOutput {
     @location(2) border_radius_local: vec4<f32>, // top-left, top-right, bottom-right, bottom-left (clockwise)
     @location(3) border_width_local: f32,
     @location(4) border_color: vec4<f32>, // r, g, b, a
+    @location(6) scale: vec2<f32>,
 };
 
 @vertex
@@ -30,6 +32,7 @@ fn vs_main(
     out.border_radius_local = model.border_radius_local;
     out.border_width_local = model.border_width_local;
     out.border_color = model.border_color;
+    out.scale = model.scale;
     return out;
 }
 
@@ -66,12 +69,13 @@ fn sdf_rounded(in: SDFInput) -> f32 {
     return min(max(q[0], q[1]), 0.0) + length(max(q, vec2<f32>(0.0, 0.0))) - radius_to_choose;
 }
 
-// TODO: add texture sampling later for images etc.
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    // center at 0,0
-    let position = in.local_uv - vec2<f32>(0.5, 0.5);
-    let half_size = vec2<f32>(0.5, 0.5);
+    // center at 0,0 (modify with aspect ratio)
+    var position = in.local_uv - vec2<f32>(0.5, 0.5);
+    position *= in.scale;
+    var half_size = vec2<f32>(0.5, 0.5);
+    half_size *= in.scale;
 
     var sdf_input: SDFInput;
     sdf_input.position = position;
@@ -90,5 +94,38 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     var output_color = vec4<f32>(0.0, 0.0, 0.0, 0.0);
     output_color += border * in.border_color;
     output_color += fill * in.background_color;
+    return output_color;
+}
+
+@group(0) @binding(0)
+var t_diffuse: texture_2d<f32>;
+@group(0) @binding(1)
+var s_diffuse: sampler;
+
+@fragment
+fn fs_image(in: VertexOutput) -> @location(0) vec4<f32> {
+    // center at 0,0 (modify with aspect ratio)
+    var position = in.local_uv - vec2<f32>(0.5, 0.5);
+    position *= in.scale;
+    var half_size = vec2<f32>(0.5, 0.5);
+    half_size *= in.scale;
+
+    var sdf_input: SDFInput;
+    sdf_input.position = position;
+    sdf_input.half_size = half_size;
+    sdf_input.border_radius = in.border_radius_local;
+    let d = sdf_rounded(sdf_input);
+
+    // basic anti aliasing to get smooth corners
+    let anti_aliasing = 1.0 / 50;
+    let alpha_mul = 1.0 - smoothstep(0.0, anti_aliasing, d);
+
+    // we need negative border width since with sdf d < 0.0 means inside the shape
+    let border = (smoothstep(-in.border_width_local - anti_aliasing, -in.border_width_local + anti_aliasing, d) * (1.0 - smoothstep(0.0 - anti_aliasing, 0.0 + anti_aliasing, d))) * alpha_mul;
+    let fill = (1.0 - smoothstep(-in.border_width_local - anti_aliasing, -in.border_width_local + anti_aliasing, d)) * alpha_mul;
+
+    var output_color = vec4<f32>(0.0, 0.0, 0.0, 0.0);
+    output_color += border * in.border_color;
+    output_color += fill * textureSample(t_diffuse, s_diffuse, in.local_uv); // use the texture from the bindings for the fill colour
     return output_color;
 }

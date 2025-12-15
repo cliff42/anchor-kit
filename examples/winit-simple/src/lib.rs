@@ -1,5 +1,6 @@
 use std::{iter, sync::Arc};
 
+use uuid::Uuid;
 use winit::{
     application::ApplicationHandler,
     event::*,
@@ -15,9 +16,6 @@ use anchor_kit_core::{
 use anchor_kit_core::{FrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo};
 
-// This will store the state of our app
-// lib.rs
-
 pub struct State {
     renderer: Renderer,
     ui_state: UIState,
@@ -27,6 +25,7 @@ pub struct State {
     config: wgpu::SurfaceConfiguration,
     is_surface_configured: bool,
     window: Arc<Window>,
+    image_id: Uuid, // just one image id here for the example, in reality these should be managed better
 }
 
 impl State {
@@ -77,9 +76,13 @@ impl State {
             desired_maximum_frame_latency: 2,
         };
 
-        let renderer = Renderer::new(&device, &queue, surface_format);
+        let mut renderer = Renderer::new(&device, &queue, surface_format);
 
         let ui_state = UIState::new([size.width, size.height]);
+
+        // for image rendering
+        let diffuse_bytes = include_bytes!("test.png");
+        let image_id = renderer.get_image_id_from_bytes(&device, &queue, diffuse_bytes);
 
         Ok(Self {
             renderer,
@@ -90,6 +93,7 @@ impl State {
             config,
             is_surface_configured: false,
             window,
+            image_id,
         })
     }
 
@@ -116,7 +120,6 @@ impl State {
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         self.window.request_redraw();
 
-        // We can't render unless the surface is configured
         if !self.is_surface_configured {
             return Ok(());
         }
@@ -145,6 +148,19 @@ impl State {
                     ..Default::default()
                 }),
                 |ui| {
+                    ui.divider(
+                        anchor_kit_core::element::DividerOrientation::Vertical,
+                        1,
+                        Some(Style {
+                            background_color: anchor_kit_core::primitives::color::Color {
+                                r: 255,
+                                g: 0,
+                                b: 0,
+                                a: 255,
+                            },
+                            ..Default::default()
+                        }),
+                    );
                     ui.flex_column(
                         Some(Style {
                             width: SizingPolicy::FillParent,
@@ -153,6 +169,27 @@ impl State {
                             ..Default::default()
                         }),
                         |ui| {
+                            ui.image(
+                                self.image_id,
+                                Some(Style {
+                                    width: SizingPolicy::Fixed(200),
+                                    height: SizingPolicy::Fixed(250),
+                                    border_color: anchor_kit_core::primitives::color::Color {
+                                        r: 200,
+                                        g: 200,
+                                        b: 255,
+                                        a: 150,
+                                    },
+                                    border_radius: [10.0, 10.0, 10.0, 10.0],
+                                    border_width: 2.0,
+                                    ..Default::default()
+                                }),
+                            );
+                            ui.divider(
+                                anchor_kit_core::element::DividerOrientation::Horizontal,
+                                2,
+                                None,
+                            );
                             ui.flex_row(
                                 Some(Style {
                                     margin: Insets {
@@ -228,8 +265,11 @@ impl State {
                                                     b: 0,
                                                     a: 100,
                                                 },
-                                            border_radius: [5.0, 10.0, 0.0, 2.5],
+                                            border_radius: [50.0, 50.0, 50.0, 50.0],
                                             border_width: 5.0,
+                                            justify_x: anchor_kit_core::style::Align::Middle,
+                                            width: SizingPolicy::Fixed(200),
+                                            height: SizingPolicy::Fixed(75),
                                             ..Default::default()
                                         }),
                                         |ui| {
@@ -359,7 +399,6 @@ impl ApplicationHandler<State> for App {
                 state.update();
                 match state.render() {
                     Ok(_) => {}
-                    // Reconfig the surface if lost or outdated
                     Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
                         let size = state.window.inner_size();
                         state.resize(size.width, size.height);

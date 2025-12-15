@@ -1,12 +1,13 @@
 use crate::{
     element::{Element, ElementType},
-    primitives::{rectangle::Rectangle, text::Text},
+    primitives::{image::Image, rectangle::Rectangle, text::Text},
 };
 
 #[derive(Clone, Default, Debug)]
 pub struct RenderList {
     pub rectangles: Vec<Rectangle>,
     pub text: Vec<Text>,
+    pub images: Vec<Image>,
 }
 
 pub fn render_pass(root: &Element, render_list: &mut RenderList) {
@@ -18,7 +19,6 @@ pub fn render_pass(root: &Element, render_list: &mut RenderList) {
 pub fn handle_element_render(element: &Element, render_list: &mut RenderList) {
     match &element._type {
         ElementType::Root => {
-            // TODO: should eventually error here as well
             for c in element.children.iter() {
                 handle_element_render(c, render_list);
             }
@@ -46,6 +46,12 @@ pub fn handle_element_render(element: &Element, render_list: &mut RenderList) {
             for c in element.children.iter() {
                 handle_element_render(c, render_list);
             }
+        }
+        ElementType::Image(_) => {
+            handle_image_element(element, render_list);
+        }
+        ElementType::Divider(_, _) => {
+            handle_divider_element(element, render_list);
         }
     }
 }
@@ -80,5 +86,38 @@ fn handle_pill_element(element: &Element, render_list: &mut RenderList) {
         position,
         size: element.size,
         style: element.style, // TODO: for pill we should probably default to rounded corners
+    });
+}
+
+fn handle_image_element(element: &Element, render_list: &mut RenderList) {
+    let texture_id = match &element._type {
+        ElementType::Image(texture_id) => texture_id,
+        _ => return,
+    };
+    let position = match &element.frame_position {
+        Some(pos) => *pos,
+        None => return,
+    };
+
+    let image_prim = Image {
+        texture_id: *texture_id,
+        rectangle: Rectangle {
+            position,
+            size: element.size,
+            style: element.style,
+        },
+    };
+    render_list.images.push(image_prim);
+}
+
+fn handle_divider_element(element: &Element, render_list: &mut RenderList) {
+    let position = match &element.frame_position {
+        Some(pos) => *pos,
+        None => return,
+    };
+    render_list.rectangles.push(Rectangle {
+        position,
+        size: element.size,
+        style: element.style,
     });
 }

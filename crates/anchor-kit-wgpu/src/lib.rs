@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anchor_kit_core::{
     primitives::rectangle::Rectangle,
     render::RenderList,
@@ -7,6 +9,8 @@ use glyphon::{
     Attrs, Cache, FontSystem, Metrics, Shaping, SwashCache, TextArea, TextAtlas, TextBounds,
     TextRenderer, Viewport,
 };
+use image::GenericImageView;
+use uuid::Uuid;
 use wgpu::include_wgsl;
 
 pub struct ScreenInfo {
@@ -23,16 +27,18 @@ struct Vertex {
     border_radius: [f32; 4],    // top-left, top-right, bottom-right, bottom-left (clockwise)
     border_width: f32,
     border_color: [f32; 4], // r, g, b, a
+    scale: [f32; 2],        // scale x,y to w,h
 }
 
 impl Vertex {
-    const ATTRIBS: [wgpu::VertexAttribute; 6] = wgpu::vertex_attr_array![
+    const ATTRIBS: [wgpu::VertexAttribute; 7] = wgpu::vertex_attr_array![
         0 => Float32x2, // location 0 is normalized position
         1 => Float32x2, // location 1 is uv in local units within the object
         2 => Float32x4, // location 2 is colour
         3 => Float32x4, // location 3 is border radius (also in local units)
         4 => Float32, // location 4 is border width (also in local units)
-        5 => Float32x4 // location 5 is boder colour
+        5 => Float32x4, // location 5 is boder colour
+        6 => Float32x2, // location 6 is the scale
     ];
 
     fn capacity_to_bytes(capacity: usize) -> wgpu::BufferAddress {
@@ -79,6 +85,12 @@ fn get_vertices_and_indices_for_rectangle(
 ) -> ([Vertex; 4], [u32; 6]) {
     let [x, y] = rect.position;
     let [w, h] = rect.size;
+    let scale_axis = w.min(h) as f32;
+    let scale = if scale_axis <= 0.0 {
+        [1.0, 1.0]
+    } else {
+        [(w as f32) / scale_axis, (h as f32) / scale_axis]
+    };
     let [screen_w, screen_h] = screen_info.size_px;
 
     // normalize pixel values
@@ -105,6 +117,7 @@ fn get_vertices_and_indices_for_rectangle(
         border_radius: local_radius,
         border_width: local_border_width,
         border_color,
+        scale,
     };
     let v1 = Vertex {
         position: [x1, y0],
@@ -113,6 +126,7 @@ fn get_vertices_and_indices_for_rectangle(
         border_radius: local_radius,
         border_width: local_border_width,
         border_color,
+        scale,
     };
     let v2 = Vertex {
         position: [x1, y1],
@@ -121,6 +135,7 @@ fn get_vertices_and_indices_for_rectangle(
         border_radius: local_radius,
         border_width: local_border_width,
         border_color,
+        scale,
     };
     let v3 = Vertex {
         position: [x0, y1],
@@ -129,6 +144,7 @@ fn get_vertices_and_indices_for_rectangle(
         border_radius: local_radius,
         border_width: local_border_width,
         border_color,
+        scale,
     };
 
     let vertices = [v0, v1, v2, v3];
@@ -232,7 +248,6 @@ impl GlyphonRenderer {
                 text_item.text_style.text_color.a,
             );
 
-            // TODO: these styling options should be set by the user as well
             let text_attrs = Attrs::new()
                 .family(Self::anchor_kit_font_family_to_glyphon(
                     &text_style.font_family,
@@ -349,12 +364,15 @@ impl GlyphonRenderer {
 }
 
 pub struct Renderer {
-    render_pipeline: wgpu::RenderPipeline,
+    main_pipeline: wgpu::RenderPipeline,
+    image_pipeline: wgpu::RenderPipeline, // we need a new pipeline for iamges because we have to pass bind groups to the fragment shader
     vertex_buffer: wgpu::Buffer,
     vertex_buffer_capacity: usize,
     index_buffer: wgpu::Buffer,
     index_buffer_capacity: usize,
     glyphon_renderer: GlyphonRenderer,
+    bind_groups: HashMap<Uuid, wgpu::BindGroup>, // we want to store a map of ids to texture bind groups so we don't have to regenerate them each frame
+    texture_bind_group_layout: wgpu::BindGroupLayout, // we only need one bind group layout for all textures
 }
 
 impl Renderer {
@@ -379,16 +397,15 @@ impl Renderer {
             (initial_index_buffer_capacity * std::mem::size_of::<u32>()) as wgpu::BufferAddress, // use u32 for size of index
         );
 
-        let render_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("anchor-kit pipeline layout"),
-                bind_group_layouts: &[],
-                push_constant_ranges: &[],
-            });
+        let main_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("anchor-kit main layout"),
+            bind_group_layouts: &[],
+            push_constant_ranges: &[],
+        });
 
-        let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        let main_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("anchor-kit render pipeline"),
-            layout: Some(&render_pipeline_layout),
+            layout: Some(&main_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: Some("vs_main"),
@@ -424,13 +441,85 @@ impl Renderer {
             cache: None,
         });
 
+        let texture_bind_group_layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                entries: &[
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            multisampled: false,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                        },
+                        count: None,
+                    },
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                        count: None,
+                    },
+                ],
+                label: Some("anchor-kit bindgroup layout"),
+            });
+
+        let image_pipeline_layout =
+            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: Some("anchor-kit image pipeline layout"),
+                bind_group_layouts: &[&texture_bind_group_layout], // image pipeline layout needs the texture bind group layout
+                push_constant_ranges: &[],
+            });
+
+        // create seperate image pipeline for rendering images (using textures)
+        let image_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("anchor-kit render pipeline"),
+            layout: Some(&image_pipeline_layout),
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vs_main"),
+                buffers: &[Vertex::desc()], // get the buffer layout description from the vertex impl
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fs_image"), // use the image fragment shader
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: texture_format,
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+                compilation_options: wgpu::PipelineCompilationOptions::default(),
+            }),
+            primitive: wgpu::PrimitiveState {
+                topology: wgpu::PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: Some(wgpu::Face::Back),
+                polygon_mode: wgpu::PolygonMode::Fill,
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: None,
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+            cache: None,
+        });
+
         Renderer {
-            render_pipeline,
+            main_pipeline,
+            image_pipeline,
             vertex_buffer,
             vertex_buffer_capacity: initial_vertex_buffer_capacity as usize,
             index_buffer,
             index_buffer_capacity: initial_index_buffer_capacity as usize,
             glyphon_renderer: GlyphonRenderer::new(device, queue, texture_format),
+            bind_groups: HashMap::new(),
+            texture_bind_group_layout,
         }
     }
 
@@ -442,10 +531,12 @@ impl Renderer {
         screen_info: &ScreenInfo,
         render_list: &RenderList,
     ) {
+        // main pipeline rendering
         let mut vertices: Vec<Vertex> = vec![];
         let mut indices: Vec<u32> = vec![];
 
         // convert all primatives to vertices
+        let main_pipeline_index_offset = indices.len();
         for rect in &render_list.rectangles {
             // offset will increment as new vertices are added
             let (new_vertices, new_indices) =
@@ -453,8 +544,33 @@ impl Renderer {
             vertices.extend_from_slice(&new_vertices);
             indices.extend_from_slice(&new_indices);
         }
+        let main_pipeline_index_count = indices.len();
 
-        // TODO: add other primatives -> figure out text rendering
+        // we will keep track of image draws seperatly so that we can use the correct bind gorups later for the texture rendering
+        struct ImageDraw {
+            texture_id: Uuid,
+            index_offset: usize, // where this image starts in the list of shared indices
+            index_count: usize,
+        }
+        let mut image_draws: Vec<ImageDraw> = vec![];
+
+        for image in &render_list.images {
+            let image_index_offset = indices.len();
+
+            let (new_vertices, new_indices) = get_vertices_and_indices_for_rectangle(
+                &image.rectangle,
+                screen_info,
+                vertices.len() as u32,
+            );
+            vertices.extend_from_slice(&new_vertices);
+            indices.extend_from_slice(&new_indices);
+
+            image_draws.push(ImageDraw {
+                texture_id: image.texture_id,
+                index_offset: image_index_offset,
+                index_count: new_indices.len(),
+            })
+        }
 
         // make sure there is enough capcity on the gpu
         self.resize_vertex_buffer_if_required(device, vertices.len());
@@ -464,15 +580,113 @@ impl Renderer {
         queue.write_buffer(&self.vertex_buffer, 0, bytemuck::cast_slice(&vertices));
         queue.write_buffer(&self.index_buffer, 0, bytemuck::cast_slice(&indices));
 
-        // set data to be rendered
-        render_pass.set_pipeline(&self.render_pipeline);
         render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
         render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-        render_pass.draw_indexed(0..indices.len() as u32, 0, 0..1);
+
+        // set data to be rendered (for main pipeline (for rectangles))
+        render_pass.set_pipeline(&self.main_pipeline);
+        render_pass.draw_indexed(
+            main_pipeline_index_offset as u32..main_pipeline_index_count as u32, // use the main pipeline index count/ offset
+            0,
+            0..1,
+        );
+
+        // draw the images using the image pipeline (individual draws for each since they could have different textures)
+        render_pass.set_pipeline(&self.image_pipeline);
+        for image_draw in image_draws.iter() {
+            if let Some(bind_group) = self.bind_groups.get(&image_draw.texture_id) {
+                render_pass.set_bind_group(0, bind_group, &[]);
+                render_pass.draw_indexed(
+                    image_draw.index_offset as u32
+                        ..(image_draw.index_offset + image_draw.index_count) as u32, // use the specific image index count/ offset
+                    0,
+                    0..1,
+                );
+            }
+        }
 
         // handle text rendering with glyphon
         self.glyphon_renderer
             .render_text(device, queue, render_pass, screen_info, render_list);
+    }
+
+    // image/ texture rendering inspired by: https://sotrh.github.io/learn-wgpu/beginner/tutorial5-textures/#the-bindgroup
+    pub fn get_image_id_from_bytes(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        diffuse_bytes: &[u8],
+    ) -> Uuid {
+        let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
+        let diffuse_rgba = diffuse_image.to_rgba8();
+        let dimensions = diffuse_image.dimensions();
+
+        // create the texture
+        let texture_size = wgpu::Extent3d {
+            width: dimensions.0,
+            height: dimensions.1,
+            depth_or_array_layers: 1, // we keep depth as 1 for 2d images
+        };
+
+        let diffuse_texture = device.create_texture(&wgpu::TextureDescriptor {
+            size: texture_size,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8UnormSrgb,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            label: Some("anchor-kit diffuse texture"),
+            view_formats: &[],
+        });
+
+        queue.write_texture(
+            wgpu::TexelCopyTextureInfo {
+                texture: &diffuse_texture,
+                mip_level: 0,
+                origin: wgpu::Origin3d::ZERO,
+                aspect: wgpu::TextureAspect::All,
+            },
+            &diffuse_rgba,
+            wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(4 * dimensions.0),
+                rows_per_image: Some(dimensions.1),
+            },
+            texture_size,
+        );
+
+        let diffuse_texture_view =
+            diffuse_texture.create_view(&wgpu::TextureViewDescriptor::default());
+
+        let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            address_mode_w: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::FilterMode::Linear,
+            ..Default::default()
+        });
+
+        let diffuse_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            layout: &self.texture_bind_group_layout, // the layout is created in the new function (single layout for all texture bind groups)
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture_view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_sampler),
+                },
+            ],
+            label: Some("anchor-kit diffuse bind group"),
+        });
+
+        // generate the unique texture id so we can access it later without regenerating
+        let id = Uuid::new_v4();
+        self.bind_groups.insert(id, diffuse_bind_group);
+        id // return the id so the user can use it to render images in the generate frame pass
     }
 
     fn resize_vertex_buffer_if_required(

@@ -2,5 +2,11 @@
 name = "anchor-kit-core"
 version = "0.1.0"
 edition = "2021"
+description = "core UI primatives, elements and layout for anchor-kit"
+repository = "https://github.com/cliff42/anchor-kit"
+license = "MIT OR Apache-2.0"
+keywords = ["rendering", "graphics", "immediate+mode"]
+categories = ["rendering::engine"]
 
 [dependencies]
+uuid = { version = "1.19.0", features = ["v4"] }

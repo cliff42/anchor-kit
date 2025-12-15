@@ -2,6 +2,7 @@ use crate::{
     anchor::AnchorPosition,
     style::{Style, TextStyle},
 };
+use uuid::Uuid;
 
 #[derive(Clone, Debug)]
 pub enum ElementType {
@@ -11,7 +12,14 @@ pub enum ElementType {
     FlexRow,
     FlexColumn,
     Pill,
-    // TODO: add things like table, etc.
+    Image(Uuid),                      // stores the texture id for image rendering
+    Divider(DividerOrientation, u32), // orientation and thickness
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum DividerOrientation {
+    Horizontal,
+    Vertical,
 }
 
 #[derive(Clone, Debug)]
@@ -28,6 +36,33 @@ impl Element {
     pub fn new(element_type: ElementType, style: Option<Style>) -> Self {
         Self {
             _type: element_type,
+            size: [0, 0], // will be overwritten if using SizingPolicy::Auto in style
+            style: style.unwrap_or_default(),
+            text_style: None,
+            frame_position: None,
+            children: Vec::new(),
+        }
+    }
+
+    // takes in thickness directly since width/ height in style might be confusing depending on orientation
+    pub fn new_divider(
+        orientation: DividerOrientation,
+        thickness: u32,
+        style: Option<Style>,
+    ) -> Self {
+        Self {
+            _type: ElementType::Divider(orientation, thickness),
+            size: [0, 0], // will be overwritten if using SizingPolicy::Auto in style
+            style: style.unwrap_or_default(),
+            text_style: None,
+            frame_position: None,
+            children: Vec::new(),
+        }
+    }
+
+    pub fn new_image(texture_id: Uuid, style: Option<Style>) -> Self {
+        Self {
+            _type: ElementType::Image(texture_id),
             size: [0, 0], // will be overwritten if using SizingPolicy::Auto in style
             style: style.unwrap_or_default(),
             text_style: None,

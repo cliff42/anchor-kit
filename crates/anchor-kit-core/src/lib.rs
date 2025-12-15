@@ -10,8 +10,10 @@ use anchor::AnchorPosition;
 use element::Element;
 use layout::layout_pass;
 use render::{render_pass, RenderList};
+use uuid::Uuid;
 
 use crate::{
+    element::DividerOrientation,
     measure::measure_pass,
     style::{Style, TextStyle},
 };
@@ -30,7 +32,6 @@ pub struct UI<'a> {
     current_element: &'a mut Element,
 }
 
-// TODO: add more clear comments
 impl UIState {
     pub fn new(size: [u32; 2]) -> Self {
         Self {
@@ -109,5 +110,18 @@ impl<'a> UI<'a> {
         self.current_element.children.push(pill_element);
     }
 
-    // TODO: grid, panel, image ...
+    pub fn image(&mut self, texture_id: Uuid, style: Option<Style>) {
+        let image_element = Element::new_image(texture_id, style);
+        self.current_element.children.push(image_element);
+    }
+
+    pub fn divider(
+        &mut self,
+        orientation: DividerOrientation,
+        thickness: u32,
+        style: Option<Style>,
+    ) {
+        let divider_element = Element::new_divider(orientation, thickness, style);
+        self.current_element.children.push(divider_element);
+    }
 }
