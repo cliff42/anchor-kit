@@ -10,6 +10,8 @@ anchor-kit-wgpu [crate](https://crates.io/crates/anchor-kit-wgpu)
 
 # Video Slide Presentation
 
+https://www.youtube.com/watch?v=cf9ffnPPhQ8
+
 Slides: [here](https://docs.google.com/presentation/d/1OnSfOBHfAmb4jpYNjY7fyvvHU6kqUAGf0jqdkyfNM4M/edit?usp=sharing).
 
 # Video Demo
