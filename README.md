@@ -202,7 +202,48 @@ self.queue.submit(iter::once(encoder.finish()));
 
 ## Reproducibility Guide
 
-Since creating a new wgpu & winit app from scratch requires a lot of boilerplate code, the easiest way to reproduce the results we demonstrated above is to use the provided example code in the `anchor-kit` repository (see `examples` dir in this repo), which already contains all of the required boilerplate code to get a window to visualize. 
+Since creating a new wgpu & winit app from scratch requires a lot of boilerplate code, the easiest way to reproduce the results we demonstrated above is to use the provided example code in the `anchor-kit` repository (see `examples` dir in this repo), which already contains all of the required boilerplate code to get a window to visualize.
+
+**Clone the repo:**
+
+`git clone git@github.com:cliff42/anchor-kit.git`
+
+**cd into the examples dir for the example you want to run:**
+
+For the overlay example with dynamic data that changes per frame:
+
+`cd anchor-kit/examples/winit-overlay`
+
+For the simple example with static data:
+
+`cd anchor-kit/examples/winit-simple`
+
+**Run the example:**
+
+(In either example dir):
+
+`cargo run`
+
+Once the project has finished building, a window should appear with the example GUI.
+
+To stop the rendering, either close the window or kill the program (CTRL + C).
+
+**Modify the example code to create your own GUIs:**
+
+Find the `generate_frame()` function call in the example code in `lib.rs` (look for the comment: `// HERE IS WHERE anchor-kit GUIS ARE CREATED (UPDATE THIS RENDER LIST GENERATION)`).
+
+overlay example generate_frame call: https://github.com/cliff42/anchor-kit/blob/main/examples/winit-overlay/src/lib.rs#L171
+
+simple example generate_frame call: https://github.com/cliff42/anchor-kit/blob/main/examples/winit-simple/src/lib.rs#L143
+
+Use the examples above in the features section and in the demo/ presentation videos to modify the GUI creation by using anchor-kit's declarative API, and modify the closure functions to create whatever GUI you wish to visualize.
+
+**Some things to note:**
+
+- If you want to render images, make sure to register the texture with your `anchor_kit_wgpu_renderer` and keep track of the generated texture id to pass into the image elements. See example: [here](https://github.com/cliff42/anchor-kit/blob/main/examples/winit-simple/src/lib.rs#L83-L85).
+
+- Not all styling is applied to each element. If you are struggling to see styling changes that you apply being rendered, remember that not all style parameters have effects on every element type. For example, adding a `background-color` to text elements directly will not create a background highlight behind the text, instead you would have to create a pill element with your preferred `background-color` and wrap the text element in the pill element's closure function (the text element needs to be a child of pill element).
+
 
 ## Contributions by each team member
 
