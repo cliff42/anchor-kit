@@ -131,11 +131,11 @@ At a high-level, to integrate anchor-kit into a wgpu rendering pipeline, there a
 2. Call the `anchor_kit_core::generate_frame` function, passing in the GUI description using the declarative API to get the list of renderable primitives
 3. Call the `anchor_kit_wgpu::Renderer::render()` function, passing in the generated primitives to add the data to the wgpu frame buffers
 
-To get started with anchor-kit:
+**To get started with anchor-kit:**
 
 `cargo add anchor-kit-core && cargo add anchor-kit-wgpu`
 
-_anchor_kit_wgpu::Renderer_ instantiation:
+**_anchor_kit_wgpu::Renderer_ instantiation:**
 
 ```
 ... (wgpu boilerplate setup)
@@ -164,8 +164,28 @@ let surface_format = surface_caps
 let mut renderer = Renderer::new(&device, &queue, surface_format);
 ```
 
+**Register any textures (if you want to render images):**
+
+```
+let diffuse_bytes = include_bytes!("test.png");
+let image_id = renderer.get_image_id_from_bytes(&device, &queue, diffuse_bytes); // store the image id somewhere in rendering state to use it during the `generate_frame()` function
+```
+
+**Use anchor-kit-core's declarative API to define GUI:**
+
+```
+
+```
+
+**Convert anchor-kit primitives to wgpu frame buffers, and render them:**
+
+```
+
+```
 
 ## Reproducibility Guide
+
+Since creating a new wgpu & winit app from scratch requires a lot of boilerplate code, the easiest way to reproduce the results we demonstrated above is to use the provided example code in the `anchor-kit` repository (see `examples` dir in this repo), which already contains all of the required boilerplate code to get a window to visualize. 
 
 ## Contributions by each team member
 
