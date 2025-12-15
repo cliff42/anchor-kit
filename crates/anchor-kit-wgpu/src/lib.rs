@@ -296,7 +296,7 @@ impl GlyphonRenderer {
                 buffer: &text_buffer,
                 left: x as f32,
                 top: y as f32,
-                scale: screen_info.scale_factor,
+                scale: 1.0, // ignore screen scale factor (TODO: investigate if we want to include this later)
                 bounds: text_bounds,
                 default_color: text_color,
                 custom_glyphs: &[],

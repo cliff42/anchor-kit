@@ -72,10 +72,19 @@ dependencies = [
 ]
 
 [[package]]
-name = "anchor-kit-wgpu"
+name = "anchor-kit-core"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "90dc77977edcb5520743364d8606de4fd1a5ed38a21e0b00d8d85e79d715a2ca"
 dependencies = [
- "anchor-kit-core",
+ "uuid",
+]
+
+[[package]]
+name = "anchor-kit-wgpu"
+version = "0.1.1"
+dependencies = [
+ "anchor-kit-core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytemuck",
  "glyphon",
  "image",
@@ -3414,7 +3423,7 @@ dependencies = [
 name = "winit-overlay"
 version = "0.1.0"
 dependencies = [
- "anchor-kit-core",
+ "anchor-kit-core 0.1.0",
  "anchor-kit-wgpu",
  "anyhow",
  "chrono",
@@ -3429,7 +3438,7 @@ dependencies = [
 name = "winit-simple"
 version = "0.1.0"
 dependencies = [
- "anchor-kit-core",
+ "anchor-kit-core 0.1.0",
  "anchor-kit-wgpu",
  "anyhow",
  "env_logger",
