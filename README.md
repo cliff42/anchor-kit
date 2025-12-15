@@ -25,7 +25,7 @@ https://www.youtube.com/watch?v=7skxVpKRIko
 | Team member | Email                            | Student Number |
 | :-----------| :------------------------------: | ---------: |
 | Chris Cliff |   chris.cliff@mail.utoronto.ca   | 1012787085 |
-| Piotr Nowak |   piotr.nowak@mail.utoronto.ca   |            |
+| Piotr Nowak |   piotr.nowak@mail.utoronto.ca   | 1012752148 |
 
 
 ## Motivation
