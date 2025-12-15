@@ -171,7 +171,7 @@ let diffuse_bytes = include_bytes!("test.png");
 let image_id = renderer.get_image_id_from_bytes(&device, &queue, diffuse_bytes); // store the image id somewhere in rendering state to use it during the `generate_frame()` function
 ```
 
-**Use anchor-kit-core's declarative API to define GUI:**
+**Use anchor-kit-core's declarative API to define GUI (run each frame):**
 
 See examples above in the feature section for more specific element implementation details.
 
@@ -183,7 +183,7 @@ let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
 }
 ```
 
-**Convert anchor-kit primitives to wgpu frame buffers, and render them:**
+**Convert anchor-kit primitives to wgpu frame buffers, and render them (run each frame):**
 
 ```
 // call the anchor_kit_wgpu_renderer `render()` function with the render_list created by the `generate_frame` function above
