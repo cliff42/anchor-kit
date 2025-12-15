@@ -27,9 +27,6 @@ use anchor_kit_core::{
 use anchor_kit_core::{FrameInfo as UiFrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo as GpuFrameInfo};
 
-// This will store the state of our app
-// lib.rs
-
 struct Data {
     rx_speed: Receiver<i32>,
     speed: i32,
@@ -54,8 +51,6 @@ impl State {
     pub async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         let size = window.inner_size();
 
-        // The instance is a handle to our GPU
-        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::PRIMARY,
             ..Default::default()
@@ -75,7 +70,6 @@ impl State {
             .request_device(&wgpu::DeviceDescriptor {
                 label: None,
                 required_features: wgpu::Features::empty(),
-                //experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 required_limits: wgpu::Limits::default(),
                 memory_hints: Default::default(),
                 trace: wgpu::Trace::Off,
@@ -83,9 +77,7 @@ impl State {
             .await?;
 
         let surface_caps = surface.get_capabilities(&adapter);
-        // Shader code in this tutorial assumes an sRGB surface texture. Using a different
-        // one will result in all the colors coming out darker. If you want to support non
-        // sRGB surfaces, you'll need to account for that when drawing to the frame.
+
         let surface_format = surface_caps
             .formats
             .iter()
@@ -99,7 +91,7 @@ impl State {
             width: size.width,
             height: size.height,
             present_mode: surface_caps.present_modes[0],
-            alpha_mode: surface_caps.alpha_modes[0],
+            alpha_mode: wgpu::CompositeAlphaMode::PostMultiplied,
             view_formats: vec![],
             desired_maximum_frame_latency: 2,
         };
@@ -168,8 +160,6 @@ impl State {
     }
 
     fn update(&mut self) {
-        //self.window.request_redraw();
-
         self.data.time = Local::now();
         self.data.speed = self.data.rx_speed.try_recv().unwrap_or(self.data.speed);
         self.data.rpm = self.data.rx_rpm.try_recv().unwrap_or(self.data.rpm);
@@ -178,7 +168,6 @@ impl State {
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         self.window.request_redraw();
 
-        // We can't render unless the surface is configured
         if !self.is_surface_configured {
             return Ok(());
         }
@@ -198,19 +187,97 @@ impl State {
             size: [self.config.width, self.config.height],
         };
 
+        // HERE IS WHERE anchor-kit GUIS ARE CREATED (UPDATE THIS RENDER LIST GENERATION)
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
-            ui.anchor(
-                AnchorPosition::TopCenter,
-                Some(Style {
-                    ..Default::default()
-                }),
-                |ui| {
-                    ui.flex_column(
+            ui.anchor(AnchorPosition::TopCenter, None, |ui| {
+                ui.flex_row(
+                    Some(Style {
+                        align_x: anchor_kit_core::style::Align::Middle,
+                        ..Default::default()
+                    }),
+                    |ui| {
+                        ui.pill(
+                            Some(Style {
+                                background_color: Color {
+                                    r: 200,
+                                    g: 0,
+                                    b: 0,
+                                    a: 180,
+                                },
+                                border_color: Color {
+                                    r: 255,
+                                    g: 0,
+                                    b: 0,
+                                    a: 255,
+                                },
+                                border_width: 2.0,
+                                border_radius: [30.0, 30.0, 30.0, 30.0],
+                                margin: Insets {
+                                    top: 20,
+                                    ..Default::default()
+                                },
+                                padding: Insets {
+                                    top: 15,
+                                    right: 30,
+                                    bottom: 10,
+                                    left: 30,
+                                },
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text(
+                                    self.data.time.to_string(),
+                                    None,
+                                    Some(TextStyle {
+                                        font_size: 24.0,
+                                        font_family: anchor_kit_core::style::FontFamily::Monospace,
+                                        text_color: Color {
+                                            r: 0,
+                                            g: 0,
+                                            b: 0,
+                                            a: 255,
+                                        },
+                                        ..Default::default()
+                                    }),
+                                );
+                            },
+                        )
+                    },
+                );
+            });
+            ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
+                ui.flex_row(None, |ui| {
+                    ui.pill(
                         Some(Style {
+                            background_color: Color {
+                                r: 20,
+                                g: 20,
+                                b: 20,
+                                a: 180,
+                            },
+                            border_color: Color {
+                                r: 0,
+                                g: 0,
+                                b: 0,
+                                a: 255,
+                            },
+                            border_width: 3.0,
+                            border_radius: [25.0, 25.0, 25.0, 25.0],
+                            padding: Insets {
+                                top: 20,
+                                right: 30,
+                                bottom: 25,
+                                left: 30,
+                            },
+                            margin: Insets {
+                                bottom: 20,
+                                left: 20,
+                                ..Default::default()
+                            },
                             ..Default::default()
                         }),
                         |ui| {
-                            ui.flex_row(
+                            ui.flex_column(
                                 Some(Style {
                                     align_x: anchor_kit_core::style::Align::Middle,
                                     ..Default::default()
@@ -353,8 +420,189 @@ impl State {
                             );
                         },
                     );
-                },
-            );
+                });
+            });
+            ui.anchor(AnchorPosition::BottomRight, None, |ui| {
+                ui.flex_column(
+                    Some(Style {
+                        margin: Insets {
+                            right: 20,
+                            bottom: 20,
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    }),
+                    |ui| {
+                        ui.pill(
+                            Some(Style {
+                                background_color: Color {
+                                    r: 20,
+                                    g: 20,
+                                    b: 20,
+                                    a: 180,
+                                },
+                                border_color: Color {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                    a: 255,
+                                },
+                                border_width: 3.0,
+                                border_radius: [40.0, 40.0, 40.0, 40.0],
+                                margin: Insets {
+                                    top: 15,
+                                    ..Default::default()
+                                },
+                                padding: Insets {
+                                    top: 15,
+                                    right: 15,
+                                    bottom: 17,
+                                    left: 30,
+                                },
+                                align_x: anchor_kit_core::style::Align::End,
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text(
+                                    format!("Gear {}", self.data.gear),
+                                    None,
+                                    Some(TextStyle {
+                                        font_size: 24.0,
+                                        line_height: 24.0,
+                                        text_color: Color {
+                                            r: 255,
+                                            g: 255,
+                                            b: 255,
+                                            a: 255,
+                                        },
+                                        ..Default::default()
+                                    }),
+                                );
+                            },
+                        );
+                        ui.pill(
+                            Some(Style {
+                                background_color: Color {
+                                    r: 20,
+                                    g: 20,
+                                    b: 20,
+                                    a: 180,
+                                },
+                                border_color: Color {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                    a: 255,
+                                },
+                                border_width: 3.0,
+                                border_radius: [40.0, 40.0, 40.0, 40.0],
+                                margin: Insets {
+                                    top: 15,
+                                    ..Default::default()
+                                },
+                                padding: Insets {
+                                    top: 15,
+                                    right: 15,
+                                    bottom: 17,
+                                    left: 25,
+                                },
+                                align_x: anchor_kit_core::style::Align::End,
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text(
+                                    format!("{} RPM", self.data.rpm),
+                                    None,
+                                    Some(TextStyle {
+                                        font_size: 24.0,
+                                        line_height: 24.0,
+                                        text_color: Color {
+                                            r: 255,
+                                            g: 255,
+                                            b: 255,
+                                            a: 255,
+                                        },
+                                        ..Default::default()
+                                    }),
+                                );
+                            },
+                        );
+                    },
+                );
+            });
+            ui.anchor(AnchorPosition::TopRight, None, |ui| {
+                let fuel_level_color = match self.data.fuel {
+                    0.0..=50.0 => Color {
+                        r: 255,
+                        g: 50,
+                        b: 50,
+                        a: 255,
+                    },
+                    50.1..=80.0 => Color {
+                        r: 255,
+                        g: 200,
+                        b: 0,
+                        a: 255,
+                    },
+                    _ => Color {
+                        r: 0,
+                        g: 255,
+                        b: 100,
+                        a: 255,
+                    },
+                };
+                ui.flex_row(
+                    Some(Style {
+                        align_x: anchor_kit_core::style::Align::Middle,
+                        ..Default::default()
+                    }),
+                    |ui| {
+                        ui.pill(
+                            Some(Style {
+                                background_color: Color {
+                                    r: 20,
+                                    g: 20,
+                                    b: 20,
+                                    a: 180,
+                                },
+                                border_color: fuel_level_color,
+                                border_width: 3.0,
+                                border_radius: [40.0, 40.0, 40.0, 40.0],
+                                margin: Insets {
+                                    top: 20,
+                                    right: 20,
+                                    ..Default::default()
+                                },
+                                width: SizingPolicy::Fixed(250),
+                                height: SizingPolicy::Fixed(75),
+                                justify_x: anchor_kit_core::style::Align::Middle,
+                                padding: Insets {
+                                    left: 25,
+                                    top: 5,
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text(
+                                    format!("Fuel {:.0}%", self.data.fuel),
+                                    Some(Style {
+                                        align_y: anchor_kit_core::style::Align::Middle,
+                                        ..Default::default()
+                                    }),
+                                    Some(TextStyle {
+                                        font_size: 36.0,
+                                        line_height: 36.0,
+                                        font_weight: anchor_kit_core::style::FontWeight::ExtraBold,
+                                        text_color: fuel_level_color,
+                                        ..Default::default()
+                                    }),
+                                );
+                            },
+                        );
+                    },
+                );
+            });
         });
 
         let frame_info = GpuFrameInfo {
@@ -413,7 +661,9 @@ impl App {
 impl ApplicationHandler<State> for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         #[allow(unused_mut)]
-        let mut window_attributes = Window::default_attributes().with_transparent(true);
+        let mut window_attributes = Window::default_attributes()
+            .with_transparent(true)
+            .with_inner_size(winit::dpi::LogicalSize::new(1280, 720));
 
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
