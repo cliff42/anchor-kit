@@ -10,9 +10,13 @@ use winit::{
 
 use chrono::prelude::*;
 
-use anchor_kit_core::anchor::AnchorPosition;
+use anchor_kit_core::{
+    anchor::AnchorPosition,
+    primitives::color::Color,
+    style::{SizingPolicy, Style, TextStyle},
+};
 use anchor_kit_core::{FrameInfo as UiFrameInfo, UIState};
-use anchor_kit_wgpu::{FrameInfo as GpuFrameInfo, Renderer};
+use anchor_kit_wgpu::{Renderer, ScreenInfo as GpuFrameInfo};
 
 // This will store the state of our app
 // lib.rs
@@ -91,7 +95,7 @@ impl State {
             desired_maximum_frame_latency: 2,
         };
 
-        let renderer = Renderer::new(&device, surface_format);
+        let renderer = Renderer::new(&device, &queue, surface_format);
 
         let ui_state = UIState::new([size.width, size.height]);
 
@@ -131,7 +135,7 @@ impl State {
     }
 
     fn update(&mut self) {
-        self.window.request_redraw();
+        //self.window.request_redraw();
 
         self.data.time = Local::now();
         self.data.speed += 1;
@@ -159,30 +163,63 @@ impl State {
 
         let ui_frame_info = UiFrameInfo {
             size: [self.config.width, self.config.height],
-            time_ns: 0.0,
         };
 
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
-            ui.anchor(AnchorPosition::BottomLeft, [600, 500], |ui| {
-                ui.flex_row(|ui| {
-                    ui.text(format!("Speed: {}KPH", self.data.speed));
-                });
-            });
-            ui.anchor(AnchorPosition::BottomRight, [100, 200], |ui| {
-                ui.flex_row(|ui| {
-                    ui.text(format!("RPM: {}", self.data.rpm));
-                });
-            });
-            ui.anchor(AnchorPosition::TopCenter, [300, 400], |ui| {
-                ui.flex_row(|ui| {
-                    ui.text(self.data.time.to_string());
-                });
-            });
+            ui.anchor(
+                AnchorPosition::TopCenter,
+                Some(Style {
+                    ..Default::default()
+                }),
+                |ui| {
+                    ui.flex_column(
+                        Some(Style {
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.flex_row(
+                                Some(Style {
+                                    height: SizingPolicy::Fixed(2400),
+                                    align_x: anchor_kit_core::style::Align::Middle,
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        self.data.time.to_string(),
+                                        Some(Style {
+                                            height: SizingPolicy::Fixed(2400),
+                                            background_color: Color {
+                                                r: 0,
+                                                g: 0,
+                                                b: 0,
+                                                a: 255,
+                                            },
+                                            ..Default::default()
+                                        }),
+                                        Some(TextStyle {
+                                            font_size: 32.0,
+                                            font_family:
+                                                anchor_kit_core::style::FontFamily::Monospace,
+                                            text_color: Color {
+                                                r: 255,
+                                                g: 0,
+                                                b: 0,
+                                                a: 255,
+                                            },
+                                            ..Default::default()
+                                        }),
+                                    );
+                                },
+                            );
+                        },
+                    );
+                },
+            );
         });
 
         let frame_info = GpuFrameInfo {
-            size_px: [self.config.width as f32, self.config.height as f32],
-            scale: 1.0,
+            size_px: [self.config.width, self.config.height],
+            scale_factor: self.window.scale_factor() as f32,
         };
 
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
