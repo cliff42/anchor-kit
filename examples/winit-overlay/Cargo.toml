@@ -14,3 +14,4 @@ pollster = "0.3"
 anchor-kit-core = { path = "../../crates/anchor-kit-core" }
 anchor-kit-wgpu = { path = "../../crates/anchor-kit-wgpu" }
 chrono = "0.4.42"
+rand = "0.9.2"

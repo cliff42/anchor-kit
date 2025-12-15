@@ -1,4 +1,12 @@
-use std::{iter, sync::Arc};
+use std::{
+    iter,
+    sync::{
+        mpsc::{self, Receiver},
+        Arc,
+    },
+    thread::{self, sleep},
+    time::Duration,
+};
 
 use winit::{
     application::ApplicationHandler,
@@ -9,6 +17,7 @@ use winit::{
 };
 
 use chrono::prelude::*;
+use rand::prelude::*;
 
 use anchor_kit_core::{
     anchor::AnchorPosition,
@@ -22,8 +31,10 @@ use anchor_kit_wgpu::{Renderer, ScreenInfo as GpuFrameInfo};
 // lib.rs
 
 struct Data {
-    speed: usize,
-    rpm: usize,
+    rx_speed: Receiver<i32>,
+    speed: i32,
+    rx_rpm: Receiver<i32>,
+    rpm: i32,
     time: DateTime<Local>,
 }
 
@@ -40,8 +51,6 @@ pub struct State {
 }
 
 impl State {
-    // We don't need this to be async right now,
-    // but we will in the next tutorial
     pub async fn new(window: Arc<Window>) -> anyhow::Result<State> {
         let size = window.inner_size();
 
@@ -99,9 +108,33 @@ impl State {
 
         let ui_state = UIState::new([size.width, size.height]);
 
+        //create seperate threads to simulate a sensor reading
+        let (tx_speed, rx_speed) = mpsc::channel();
+        let (tx_rpm, rx_rpm) = mpsc::channel();
+
+        thread::spawn(move || {
+            let mut speed = 100;
+            loop {
+                speed += rand::random_range(-1..=1);
+                tx_speed.send(speed).unwrap();
+                sleep(Duration::from_millis(150));
+            }
+        });
+
+        thread::spawn(move || {
+            let mut rpm = 2500;
+            loop {
+                rpm += rand::random_range(-100..=100);
+                tx_rpm.send(rpm).unwrap();
+                sleep(Duration::from_millis(250));
+            }
+        });
+
         let data = Data {
             speed: 0,
-            rpm: 500,
+            rx_speed: rx_speed,
+            rx_rpm: rx_rpm,
+            rpm: 0,
             time: Local::now(),
         };
 
@@ -138,6 +171,8 @@ impl State {
         //self.window.request_redraw();
 
         self.data.time = Local::now();
+        self.data.speed = self.data.rx_speed.try_recv().unwrap_or(self.data.speed);
+        self.data.rpm = self.data.rx_rpm.try_recv().unwrap_or(self.data.rpm);
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
@@ -204,7 +239,7 @@ impl State {
                                             ui.text(
                                                 self.data.time.format("%d/%b/%Y | %H:%M:%S.%3f").to_string(),
                                                 Some(Style{
-                                                    padding: Insets { top: 5, right: 80, bottom: 5, left: 5 },
+                                                    padding: Insets { top: 0, right: 5, bottom: 5, left: 5 },
                                                     ..Default::default()
                                                 }),
                                                 Some(TextStyle {
@@ -265,7 +300,53 @@ impl State {
                                             ..Default::default()
                                         }),
                                         |ui| {
-
+                                            ui.text(format!("{} RPM", self.data.rpm), None, None);
+                                        }
+                                    );
+                                },
+                            );
+                        },
+                    );
+                },
+            );
+            ui.anchor(
+                AnchorPosition::BottomRight,
+                Some(Style {
+                    ..Default::default()
+                }),
+                |ui| {
+                    ui.flex_column(
+                        Some(Style {
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.flex_row(
+                                Some(Style {
+                                    align_x: anchor_kit_core::style::Align::Middle,
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.pill(
+                                        Some(Style {
+                                            background_color: Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 127,
+                                            },
+                                            border_color: Color {
+                                                r: 50,
+                                                g: 50,
+                                                b: 50,
+                                                a: 255,
+                                            },
+                                            border_radius: [10.0, 10.0, 10.0, 10.0],
+                                            border_width: 3.0,
+                                            padding: Insets { top: 5, right: 5, bottom: 5, left: 5 },
+                                            ..Default::default()
+                                        }),
+                                        |ui| {
+                                            ui.text(format!("{} KPH", self.data.speed), None, None);
                                         }
                                     );
                                 },
