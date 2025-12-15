@@ -72,6 +72,25 @@ anchor_kit_wgpu_renderer.render(
 self.queue.submit(iter::once(encoder.finish())); // submit everything to be rendered by wgpu (including the anchor-kit pass)
 ```
 
+**Styling:**
+
+```
+pub struct Style {
+    pub padding: Insets, // top, right, bottom, left padding for the element 
+    pub margin: Insets, // top, right, bottom, left margin for the element
+    pub width: SizingPolicy, // fixed, fill or automatic (based on element content) sizing 
+    pub height: SizingPolicy, // fixed, fill or automatic (based on element content) sizing 
+    pub align_x: Align, // element x alignment within parent element (start, middle, end)
+    pub align_y: Align, // element y alignment within parent element (start, middle, end)
+    pub justify_x: Align, // x alignment of content within the element (start, middle, end)
+    pub justify_y: Align, // y alignment of content within the element (start, middle, end)
+    pub background_color: Color, // background color for the element (red, green, blue, alpha)
+    pub border_color: Color, // border color for the element (red, green, blue, alpha)
+    pub border_radius: [f32; 4], // radius for element corner rounding (top-left, top-right, bottom-right, bottom-left)
+    pub border_width: f32, // size of the element’s border
+}
+```
+
 **Anchor positions:**
 
 <img width="573" height="449" alt="Screenshot 2025-12-15 at 2 39 05 AM" src="https://github.com/user-attachments/assets/4d92d418-e021-4fd9-a0be-926976b7ba01" />
@@ -116,6 +135,34 @@ To get started with anchor-kit:
 
 `cargo add anchor-kit-core && cargo add anchor-kit-wgpu`
 
+_anchor_kit_wgpu::Renderer_ instantiation:
+
+```
+... (wgpu boilerplate setup)
+
+// get the wgpu device and queue (also boilerplate, not anchor-kit specific)
+let (device, queue) = adapter
+    .request_device(&wgpu::DeviceDescriptor {
+        label: None,
+        required_features: wgpu::Features::empty(),
+        required_limits: wgpu::Limits::default(),
+        memory_hints: Default::default(),
+        trace: wgpu::Trace::Off,
+    })
+    .await?;
+
+// wgpu surface format boilerplate (not anchor-kit specific)
+let surface_caps = surface.get_capabilities(&adapter);
+let surface_format = surface_caps
+    .formats
+    .iter()
+    .find(|f| f.is_srgb())
+    .copied()
+    .unwrap_or(surface_caps.formats[0]);
+
+// instantiate the anchor_kit_wgpu::Renderer using these wgpu objects
+let mut renderer = Renderer::new(&device, &queue, surface_format);
+```
 
 
 ## Reproducibility Guide
