@@ -2,13 +2,25 @@
 
 anchor-kit is a lightweight, immediate-mode UI rendering library for non-interactive overlay data visualization. It enables responsive layouts, so users don't have worry about resizing their elements manually when data changes, while still enabling a simple immediate-mode rendering framework. This is posisble since anchor-kit is purpose-built for non-interactive cases where no user input events are expected.
 
+`cargo add anchor-kit-core && cargo add anchor-kit-wgpu`
+
+anchor-kit-core [crate](https://crates.io/crates/anchor-kit-core)
+
+anchor-kit-wgpu [crate](https://crates.io/crates/anchor-kit-wgpu)
+
 # Video Slide Presentation
 
 # Video Demo
 
 # Final Report
 
-### Features
+## Team members
+
+## Motivation
+
+## Objectives
+
+## Features
 
 The core functionality behind anchor-kit is the simple API it provides for users to create GUIs using their existing graphics pipelines. In order to actual render the GUI created with anchor-kit, a `render_list` is created, which consists of anchor-kit primitives, which is then passed into the anchor-kit integration (for now just wgpu), which handles the actual rendering.
 
@@ -67,7 +79,12 @@ self.queue.submit(iter::once(encoder.finish())); // submit everything to be rend
 
 <img width="569" height="448" alt="Screenshot 2025-12-15 at 2 41 27 AM" src="https://github.com/user-attachments/assets/a67a78a0-96e4-44f1-b822-ef76854a1e5c" />
 
+## Developer's Guide
 
-### Lessons Learned
+## Reproducibility Guide
+
+## Contributions by each team member
+
+## Lessons Learned
 
 Computer graphics is hard.
