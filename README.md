@@ -34,6 +34,11 @@ https://www.youtube.com/watch?v=7skxVpKRIko
 
 ## Features
 
+### Core libraries used
+- [wgpu](https://docs.rs/wgpu/latest/wgpu/)
+- [winit](https://docs.rs/winit/latest/winit/) (for windowed rendering)
+- [glyphon](https://github.com/grovesNL/glyphon) (text rendering in wgpu)
+
 <img width="775" height="303" alt="Screenshot 2025-12-15 at 3 10 16 AM" src="https://github.com/user-attachments/assets/c093b2d2-a1ef-4a10-a635-8248fb4b5804" />
 
 
@@ -249,4 +254,8 @@ Use the examples above in the features section and in the demo/ presentation vid
 
 ## Lessons Learned
 
-Computer graphics is hard.
+Computer graphics and rendering are quite hard. Going into the project, we didn't fully understand all of the intricacies involved in creating a rendering library, even one with a relatively limited scope like anchor-kit. We didn't expect the amount of work required to get simple things like rounded corners or texture rendering. It was especially interesting to learn about shader development, which is something that we hadn't done before. Since we were new to shader development it was very fun, albeit time-consuming to learn about to differences between the types of shaders, how to hook them up to rendering pipelines, and all of the math involved in various coordinate systems and concepts like signed distance functions. We are very greatful for Inigo Quilez, and the vast library of [open source shader development tutorials](https://iquilezles.org/articles/distfunctions2d/) he has published, they came very much in handy when dealing with late-night shader debugging. 
+
+## Future work
+- We plan to add new element integrations to `anchor-kit-core` to enable more complex data visualizations and provide users with even simpler APIs to create their desired GUIs.
+- We also want to add new rendering library integrations, likely starting with a dedicated library for `winit`, which should help reduce the amount of boilerplate the user needs to add to get a GUI rendering in a window.
