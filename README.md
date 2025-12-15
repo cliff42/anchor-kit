@@ -16,6 +16,8 @@ Slides: [here](https://docs.google.com/presentation/d/1OnSfOBHfAmb4jpYNjY7fyvvHU
 
 # Video Demo
 
+https://www.youtube.com/watch?v=7skxVpKRIko
+
 # Final Report
 
 ## Team members
