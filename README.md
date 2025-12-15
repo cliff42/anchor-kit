@@ -16,6 +16,12 @@ anchor-kit-wgpu [crate](https://crates.io/crates/anchor-kit-wgpu)
 
 ## Team members
 
+| Team member | Email                            | Student Number |
+| :-----------| :------------------------------: | ---------: |
+| Chris Cliff |   chris.cliff@mail.utoronto.ca   | 1012787085 |
+| Piotr Nowak |   piotr.nowak@mail.utoronto.ca   |            |
+
+
 ## Motivation
 
 ## Objectives
