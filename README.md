@@ -161,7 +161,7 @@ let surface_format = surface_caps
     .unwrap_or(surface_caps.formats[0]);
 
 // instantiate the anchor_kit_wgpu::Renderer using these wgpu objects
-let mut renderer = Renderer::new(&device, &queue, surface_format);
+let mut anchor_kit_wgpu_renderer = Renderer::new(&device, &queue, surface_format);
 ```
 
 **Register any textures (if you want to render images):**
@@ -173,14 +173,31 @@ let image_id = renderer.get_image_id_from_bytes(&device, &queue, diffuse_bytes);
 
 **Use anchor-kit-core's declarative API to define GUI:**
 
-```
+See examples above in the feature section for more specific element implementation details.
 
+```
+let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
+    ui.anchor(AnchorPosition::TopCenter, None, |ui| {
+        ... // additional elements defined here (see more examples above in the features section)
+    });
+}
 ```
 
 **Convert anchor-kit primitives to wgpu frame buffers, and render them:**
 
 ```
+// call the anchor_kit_wgpu_renderer `render()` function with the render_list created by the `generate_frame` function above
+self.anchor_kit_wgpu_renderer.render(
+    &self.device,
+    &self.queue,
+    &mut render_pass,
+    &screen_info,
+    &render_list,
+);
 
+// more wgpu boilerplate (not anchor-kit specific), but this is how the frame is actually triggered for rendering (with the frame buffers the `render()` function defines above)
+drop(render_pass);
+self.queue.submit(iter::once(encoder.finish()));
 ```
 
 ## Reproducibility Guide
