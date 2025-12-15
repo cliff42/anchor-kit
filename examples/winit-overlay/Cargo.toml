@@ -1,0 +1,16 @@
+[package]
+name = "winit-overlay"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+winit = "0.30.12"
+env_logger = "0.11.8"
+log = "0.4.29"
+wgpu = "25.0.2"
+pollster = "0.3"
+
+anchor-kit-core = { path = "../../crates/anchor-kit-core" }
+anchor-kit-wgpu = { path = "../../crates/anchor-kit-wgpu" }
+chrono = "0.4.42"
