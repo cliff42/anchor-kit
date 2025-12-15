@@ -132,7 +132,7 @@ impl State {
         self.data.time = Local::now();
         // use mods to modulate the speed & rpm
         self.data.speed = (self.data.speed + 1) % 200;
-        self.data.rpm += ((self.data.rpm + 50) % 5000).max(500);
+        self.data.rpm = (self.data.rpm + 10) % 5000;
         // gear based on rpm
         self.data.gear = match self.data.rpm {
             0..=1000 => 1,
@@ -192,7 +192,7 @@ impl State {
                                 border_width: 2.0,
                                 border_radius: [30.0, 30.0, 30.0, 30.0],
                                 margin: Insets {
-                                    top: 15,
+                                    top: 20,
                                     ..Default::default()
                                 },
                                 padding: Insets {
@@ -206,15 +206,7 @@ impl State {
                             |ui| {
                                 ui.text(
                                     self.data.time.to_string(),
-                                    Some(Style {
-                                        background_color: Color {
-                                            r: 0,
-                                            g: 0,
-                                            b: 0,
-                                            a: 255,
-                                        },
-                                        ..Default::default()
-                                    }),
+                                    None,
                                     Some(TextStyle {
                                         font_size: 24.0,
                                         font_family: anchor_kit_core::style::FontFamily::Monospace,
@@ -233,84 +225,188 @@ impl State {
                 );
             });
             ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
-                ui.pill(
-                    Some(Style {
-                        background_color: Color {
-                            r: 200,
-                            g: 0,
-                            b: 0,
-                            a: 180,
-                        },
-                        border_color: Color {
-                            r: 255,
-                            g: 0,
-                            b: 0,
-                            a: 255,
-                        },
-                        border_width: 2.0,
-                        border_radius: [30.0, 30.0, 30.0, 30.0],
-                        margin: Insets {
-                            top: 15,
+                ui.flex_row(None, |ui| {
+                    ui.pill(
+                        Some(Style {
+                            background_color: Color {
+                                r: 20,
+                                g: 20,
+                                b: 20,
+                                a: 180,
+                            },
+                            border_color: Color {
+                                r: 0,
+                                g: 0,
+                                b: 0,
+                                a: 255,
+                            },
+                            border_width: 3.0,
+                            border_radius: [25.0, 25.0, 25.0, 25.0],
+                            padding: Insets {
+                                top: 20,
+                                right: 30,
+                                bottom: 25,
+                                left: 30,
+                            },
+                            margin: Insets {
+                                bottom: 20,
+                                left: 20,
+                                ..Default::default()
+                            },
                             ..Default::default()
+                        }),
+                        |ui| {
+                            ui.flex_column(
+                                Some(Style {
+                                    align_x: anchor_kit_core::style::Align::Middle,
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        format!("{}", self.data.speed),
+                                        Some(Style {
+                                            align_x: anchor_kit_core::style::Align::Middle,
+                                            ..Default::default()
+                                        }),
+                                        Some(TextStyle {
+                                            font_size: 72.0,
+                                            line_height: 72.0,
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            text_color: Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 255,
+                                            },
+                                            ..Default::default()
+                                        }),
+                                    );
+                                    ui.text(
+                                        "MPH".to_string(),
+                                        Some(Style {
+                                            align_x: anchor_kit_core::style::Align::Middle,
+                                            margin: Insets {
+                                                top: 15,
+                                                ..Default::default()
+                                            },
+                                            ..Default::default()
+                                        }),
+                                        Some(TextStyle {
+                                            font_size: 24.0,
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            text_color: Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 255,
+                                            },
+                                            ..Default::default()
+                                        }),
+                                    );
+                                },
+                            );
                         },
-                        padding: Insets {
-                            top: 15,
-                            right: 30,
-                            bottom: 10,
-                            left: 30,
+                    );
+                });
+            });
+            ui.anchor(AnchorPosition::BottomRight, None, |ui| {
+                ui.flex_column(
+                    Some(Style {
+                        margin: Insets {
+                            right: 20,
+                            bottom: 20,
+                            ..Default::default()
                         },
                         ..Default::default()
                     }),
                     |ui| {
-                        ui.flex_column(
+                        ui.pill(
                             Some(Style {
-                                justify_x: anchor_kit_core::style::Align::Middle,
+                                background_color: Color {
+                                    r: 20,
+                                    g: 20,
+                                    b: 20,
+                                    a: 180,
+                                },
+                                border_color: Color {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                    a: 255,
+                                },
+                                border_width: 3.0,
+                                border_radius: [40.0, 40.0, 40.0, 40.0],
+                                margin: Insets {
+                                    top: 15,
+                                    ..Default::default()
+                                },
+                                padding: Insets {
+                                    top: 15,
+                                    right: 15,
+                                    bottom: 17,
+                                    left: 30,
+                                },
+                                align_x: anchor_kit_core::style::Align::End,
                                 ..Default::default()
                             }),
                             |ui| {
                                 ui.text(
-                                    format!("{}", self.data.speed),
-                                    Some(Style {
-                                        background_color: Color {
-                                            r: 0,
-                                            g: 0,
-                                            b: 0,
-                                            a: 255,
-                                        },
-                                        ..Default::default()
-                                    }),
+                                    format!("Gear {}", self.data.gear),
+                                    None,
                                     Some(TextStyle {
-                                        font_size: 72.0,
-                                        line_height: 72.0,
-                                        font_weight: anchor_kit_core::style::FontWeight::ExtraBold,
+                                        font_size: 24.0,
+                                        line_height: 24.0,
                                         text_color: Color {
-                                            r: 0,
-                                            g: 0,
-                                            b: 0,
+                                            r: 255,
+                                            g: 255,
+                                            b: 255,
                                             a: 255,
                                         },
                                         ..Default::default()
                                     }),
                                 );
+                            },
+                        );
+                        ui.pill(
+                            Some(Style {
+                                background_color: Color {
+                                    r: 20,
+                                    g: 20,
+                                    b: 20,
+                                    a: 180,
+                                },
+                                border_color: Color {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                    a: 255,
+                                },
+                                border_width: 3.0,
+                                border_radius: [40.0, 40.0, 40.0, 40.0],
+                                margin: Insets {
+                                    top: 15,
+                                    ..Default::default()
+                                },
+                                padding: Insets {
+                                    top: 15,
+                                    right: 15,
+                                    bottom: 17,
+                                    left: 25,
+                                },
+                                align_x: anchor_kit_core::style::Align::End,
+                                ..Default::default()
+                            }),
+                            |ui| {
                                 ui.text(
-                                    "MPH".to_string(),
-                                    Some(Style {
-                                        background_color: Color {
-                                            r: 0,
-                                            g: 0,
-                                            b: 0,
-                                            a: 255,
-                                        },
-                                        ..Default::default()
-                                    }),
+                                    format!("{} RPM", self.data.rpm),
+                                    None,
                                     Some(TextStyle {
-                                        font_size: 32.0,
-                                        line_height: 32.0,
-                                        font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                        font_size: 24.0,
+                                        line_height: 24.0,
                                         text_color: Color {
-                                            r: 0,
-                                            g: 0,
-                                            b: 0,
+                                            r: 255,
+                                            g: 255,
+                                            b: 255,
                                             a: 255,
                                         },
                                         ..Default::default()
@@ -319,7 +415,80 @@ impl State {
                             },
                         );
                     },
-                )
+                );
+            });
+            ui.anchor(AnchorPosition::TopRight, None, |ui| {
+                let fuel_level_color = match self.data.fuel {
+                    0.0..=50.0 => Color {
+                        r: 255,
+                        g: 50,
+                        b: 50,
+                        a: 255,
+                    },
+                    50.1..=80.0 => Color {
+                        r: 255,
+                        g: 200,
+                        b: 0,
+                        a: 255,
+                    },
+                    _ => Color {
+                        r: 0,
+                        g: 255,
+                        b: 100,
+                        a: 255,
+                    },
+                };
+                ui.flex_row(
+                    Some(Style {
+                        align_x: anchor_kit_core::style::Align::Middle,
+                        ..Default::default()
+                    }),
+                    |ui| {
+                        ui.pill(
+                            Some(Style {
+                                background_color: Color {
+                                    r: 20,
+                                    g: 20,
+                                    b: 20,
+                                    a: 180,
+                                },
+                                border_color: fuel_level_color,
+                                border_width: 3.0,
+                                border_radius: [40.0, 40.0, 40.0, 40.0],
+                                margin: Insets {
+                                    top: 20,
+                                    right: 20,
+                                    ..Default::default()
+                                },
+                                width: SizingPolicy::Fixed(250),
+                                height: SizingPolicy::Fixed(75),
+                                justify_x: anchor_kit_core::style::Align::Middle,
+                                padding: Insets {
+                                    left: 25,
+                                    top: 5,
+                                    ..Default::default()
+                                },
+                                ..Default::default()
+                            }),
+                            |ui| {
+                                ui.text(
+                                    format!("Fuel {:.0}%", self.data.fuel),
+                                    Some(Style {
+                                        align_y: anchor_kit_core::style::Align::Middle,
+                                        ..Default::default()
+                                    }),
+                                    Some(TextStyle {
+                                        font_size: 36.0,
+                                        line_height: 36.0,
+                                        font_weight: anchor_kit_core::style::FontWeight::ExtraBold,
+                                        text_color: fuel_level_color,
+                                        ..Default::default()
+                                    }),
+                                );
+                            },
+                        );
+                    },
+                );
             });
         });
 
@@ -379,7 +548,9 @@ impl App {
 impl ApplicationHandler<State> for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         #[allow(unused_mut)]
-        let mut window_attributes = Window::default_attributes().with_transparent(true);
+        let mut window_attributes = Window::default_attributes()
+            .with_transparent(true)
+            .with_inner_size(winit::dpi::LogicalSize::new(1280, 720));
 
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
