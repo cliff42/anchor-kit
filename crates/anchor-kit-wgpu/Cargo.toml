@@ -9,7 +9,7 @@ keywords = ["rendering", "graphics", "immediate+mode"]
 categories = ["rendering::engine"]
 
 [dependencies]
-anchor-kit-core.workspace = true
+anchor-kit-core = { path = "../../crates/anchor-kit-core" }
 bytemuck = { version = "1.24.0", features = ["derive"] }
 glyphon = "0.9.0"
 image = { version = "0.25.9", features = ["png", "jpeg"] }

@@ -1,4 +1,12 @@
-use std::{iter, sync::Arc};
+use std::{
+    iter,
+    sync::{
+        mpsc::{self, Receiver},
+        Arc,
+    },
+    thread::{self, sleep},
+    time::Duration,
+};
 
 use winit::{
     application::ApplicationHandler,
@@ -9,6 +17,7 @@ use winit::{
 };
 
 use chrono::prelude::*;
+use rand::prelude::*;
 
 use anchor_kit_core::{
     anchor::AnchorPosition,
@@ -19,10 +28,10 @@ use anchor_kit_core::{FrameInfo as UiFrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo as GpuFrameInfo};
 
 struct Data {
-    speed: usize,
-    rpm: usize,
-    gear: usize,
-    fuel: f32,
+    rx_speed: Receiver<i32>,
+    speed: i32,
+    rx_rpm: Receiver<i32>,
+    rpm: i32,
     time: DateTime<Local>,
 }
 
@@ -91,11 +100,33 @@ impl State {
 
         let ui_state = UIState::new([size.width, size.height]);
 
+        //create seperate threads to simulate a sensor reading
+        let (tx_speed, rx_speed) = mpsc::channel();
+        let (tx_rpm, rx_rpm) = mpsc::channel();
+
+        thread::spawn(move || {
+            let mut speed = 100;
+            loop {
+                speed += rand::random_range(-1..=1);
+                tx_speed.send(speed).unwrap();
+                sleep(Duration::from_millis(150));
+            }
+        });
+
+        thread::spawn(move || {
+            let mut rpm = 2500;
+            loop {
+                rpm += rand::random_range(-100..=100);
+                tx_rpm.send(rpm).unwrap();
+                sleep(Duration::from_millis(250));
+            }
+        });
+
         let data = Data {
             speed: 0,
-            rpm: 500,
-            gear: 1,
-            fuel: 100.0,
+            rx_speed: rx_speed,
+            rx_rpm: rx_rpm,
+            rpm: 0,
             time: Local::now(),
         };
 
@@ -130,19 +161,8 @@ impl State {
 
     fn update(&mut self) {
         self.data.time = Local::now();
-        // use mods to modulate the speed & rpm
-        self.data.speed = (self.data.speed + 1) % 200;
-        self.data.rpm = (self.data.rpm + 10) % 5000;
-        // gear based on rpm
-        self.data.gear = match self.data.rpm {
-            0..=1000 => 1,
-            1001..=2000 => 2,
-            2001..=3000 => 3,
-            3001..=4000 => 4,
-            4001..5000 => 5,
-            _ => 6,
-        };
-        self.data.fuel = (self.data.fuel - 0.1).max(0.0);
+        self.data.speed = self.data.rx_speed.try_recv().unwrap_or(self.data.speed);
+        self.data.rpm = self.data.rx_rpm.try_recv().unwrap_or(self.data.rpm);
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
@@ -263,46 +283,138 @@ impl State {
                                     ..Default::default()
                                 }),
                                 |ui| {
-                                    ui.text(
-                                        format!("{}", self.data.speed),
+                                    ui.pill(
                                         Some(Style {
-                                            align_x: anchor_kit_core::style::Align::Middle,
-                                            ..Default::default()
-                                        }),
-                                        Some(TextStyle {
-                                            font_size: 72.0,
-                                            line_height: 72.0,
-                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
-                                            text_color: Color {
+                                            background_color: Color {
                                                 r: 255,
                                                 g: 255,
                                                 b: 255,
+                                                a: 127,
+                                            },
+                                            border_color: Color {
+                                                r: 50,
+                                                g: 50,
+                                                b: 50,
                                                 a: 255,
                                             },
+                                            border_radius: [10.0, 10.0, 10.0, 10.0],
+                                            border_width: 3.0,
+                                            padding: Insets { top: 5, right: 5, bottom: 5, left: 5 },
                                             ..Default::default()
                                         }),
+                                        |ui| {
+                                            ui.text(
+                                                self.data.time.format("%d/%b/%Y | %H:%M:%S.%3f").to_string(),
+                                                Some(Style{
+                                                    padding: Insets { top: 0, right: 5, bottom: 5, left: 5 },
+                                                    ..Default::default()
+                                                }),
+                                                Some(TextStyle {
+                                                    font_size: 32.0,
+                                                    font_family:
+                                                        anchor_kit_core::style::FontFamily::Monospace,
+                                                    text_color: Color {
+                                                        r: 255,
+                                                        g: 0,
+                                                        b: 0,
+                                                        a: 255,
+                                                    },
+                                                    ..Default::default()
+                                                }),
+                                            );
+                                        },
                                     );
-                                    ui.text(
-                                        "MPH".to_string(),
+                                },
+                            );
+                        },
+                    );
+                },
+            );
+            ui.anchor(
+                AnchorPosition::BottomLeft,
+                Some(Style {
+                    ..Default::default()
+                }),
+                |ui| {
+                    ui.flex_column(
+                        Some(Style {
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.flex_row(
+                                Some(Style {
+                                    align_x: anchor_kit_core::style::Align::Middle,
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.pill(
                                         Some(Style {
-                                            align_x: anchor_kit_core::style::Align::Middle,
-                                            margin: Insets {
-                                                top: 15,
-                                                ..Default::default()
-                                            },
-                                            ..Default::default()
-                                        }),
-                                        Some(TextStyle {
-                                            font_size: 24.0,
-                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
-                                            text_color: Color {
+                                            background_color: Color {
                                                 r: 255,
                                                 g: 255,
                                                 b: 255,
+                                                a: 127,
+                                            },
+                                            border_color: Color {
+                                                r: 50,
+                                                g: 50,
+                                                b: 50,
                                                 a: 255,
                                             },
+                                            border_radius: [10.0, 10.0, 10.0, 10.0],
+                                            border_width: 3.0,
+                                            padding: Insets { top: 5, right: 5, bottom: 5, left: 5 },
                                             ..Default::default()
                                         }),
+                                        |ui| {
+                                            ui.text(format!("{} RPM", self.data.rpm), None, None);
+                                        }
+                                    );
+                                },
+                            );
+                        },
+                    );
+                },
+            );
+            ui.anchor(
+                AnchorPosition::BottomRight,
+                Some(Style {
+                    ..Default::default()
+                }),
+                |ui| {
+                    ui.flex_column(
+                        Some(Style {
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.flex_row(
+                                Some(Style {
+                                    align_x: anchor_kit_core::style::Align::Middle,
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.pill(
+                                        Some(Style {
+                                            background_color: Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 127,
+                                            },
+                                            border_color: Color {
+                                                r: 50,
+                                                g: 50,
+                                                b: 50,
+                                                a: 255,
+                                            },
+                                            border_radius: [10.0, 10.0, 10.0, 10.0],
+                                            border_width: 3.0,
+                                            padding: Insets { top: 5, right: 5, bottom: 5, left: 5 },
+                                            ..Default::default()
+                                        }),
+                                        |ui| {
+                                            ui.text(format!("{} KPH", self.data.speed), None, None);
+                                        }
                                     );
                                 },
                             );
