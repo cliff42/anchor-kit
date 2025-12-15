@@ -141,6 +141,16 @@ impl State {
 
         // HERE IS WHERE anchor-kit GUIS ARE CREATED (UPDATE THIS RENDER LIST GENERATION)
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
+            ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
+                ui.image(
+                    self.image_id,
+                    Some(Style {
+                        width: anchor_kit_core::style::SizingPolicy::Fixed(400),
+                        height: anchor_kit_core::style::SizingPolicy::Fixed(500),
+                        ..Default::default()
+                    }),
+                );
+            });
             ui.anchor(
                 AnchorPosition::TopCenter,
                 Some(Style {
