@@ -140,6 +140,16 @@ impl State {
         };
 
         let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
+            ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
+                ui.image(
+                    self.image_id,
+                    Some(Style {
+                        width: anchor_kit_core::style::SizingPolicy::Fixed(400),
+                        height: anchor_kit_core::style::SizingPolicy::Fixed(500),
+                        ..Default::default()
+                    }),
+                );
+            });
             ui.anchor(
                 AnchorPosition::TopCenter,
                 Some(Style {
@@ -148,169 +158,491 @@ impl State {
                     ..Default::default()
                 }),
                 |ui| {
-                    ui.divider(
-                        anchor_kit_core::element::DividerOrientation::Vertical,
-                        1,
-                        Some(Style {
-                            background_color: anchor_kit_core::primitives::color::Color {
-                                r: 255,
-                                g: 0,
-                                b: 0,
-                                a: 255,
-                            },
-                            ..Default::default()
-                        }),
-                    );
                     ui.flex_column(
                         Some(Style {
                             width: SizingPolicy::FillParent,
                             height: SizingPolicy::FillParent,
-                            justify_y: anchor_kit_core::style::Align::Middle,
+                            justify_y: anchor_kit_core::style::Align::Start,
                             ..Default::default()
                         }),
                         |ui| {
-                            ui.image(
-                                self.image_id,
+                            ui.pill(
                                 Some(Style {
-                                    width: SizingPolicy::Fixed(200),
-                                    height: SizingPolicy::Fixed(250),
-                                    border_color: anchor_kit_core::primitives::color::Color {
-                                        r: 200,
-                                        g: 200,
-                                        b: 255,
-                                        a: 150,
+                                    width: SizingPolicy::Fixed(80),
+                                    height: SizingPolicy::Fixed(30),
+                                    background_color: anchor_kit_core::primitives::color::Color {
+                                        r: 255,
+                                        g: 0,
+                                        b: 0,
+                                        a: 255,
                                     },
-                                    border_radius: [10.0, 10.0, 10.0, 10.0],
-                                    border_width: 2.0,
-                                    ..Default::default()
-                                }),
-                            );
-                            ui.divider(
-                                anchor_kit_core::element::DividerOrientation::Horizontal,
-                                2,
-                                None,
-                            );
-                            ui.flex_row(
-                                Some(Style {
+                                    border_radius: [15.0, 15.0, 15.0, 15.0],
+                                    justify_x: anchor_kit_core::style::Align::Middle,
+                                    justify_y: anchor_kit_core::style::Align::Middle,
+                                    align_x: anchor_kit_core::style::Align::Middle,
                                     margin: Insets {
                                         top: 10,
                                         right: 10,
-                                        bottom: 20,
+                                        bottom: 10,
                                         left: 0,
                                     },
-                                    padding: Insets {
-                                        top: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        left: 0,
-                                    },
-                                    ..Default::default()
-                                }),
-                                |ui| {
-                                    ui.text("test".to_string(), None, None);
-                                },
-                            );
-                            ui.flex_row(
-                                Some(Style {
-                                    margin: Insets {
-                                        top: 20,
-                                        right: 10,
-                                        bottom: 0,
-                                        left: 0,
-                                    },
-                                    padding: Insets {
-                                        top: 0,
-                                        right: 0,
-                                        bottom: 0,
-                                        left: 0,
-                                    },
-                                    width: SizingPolicy::FillParent,
-                                    justify_x: anchor_kit_core::style::Align::Middle,
                                     ..Default::default()
                                 }),
                                 |ui| {
                                     ui.text(
-                                        "Hello".to_string(),
+                                        "row 1".to_string(),
                                         Some(Style {
                                             margin: Insets {
-                                                top: 0,
-                                                right: 10,
-                                                bottom: 0,
-                                                left: 0,
-                                            },
-                                            padding: Insets {
-                                                top: 0,
+                                                top: 5,
                                                 right: 0,
                                                 bottom: 0,
                                                 left: 0,
                                             },
-                                            align_y: anchor_kit_core::style::Align::Middle,
                                             ..Default::default()
                                         }),
-                                        None,
+                                        Some(TextStyle {
+                                            font_size: 16.0,
+                                            line_height: 20.0,
+                                            text_color: anchor_kit_core::primitives::color::Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 255,
+                                            },
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            ..Default::default()
+                                        }),
                                     );
-                                    ui.pill(
+                                },
+                            );
+                            ui.pill(
+                                Some(Style {
+                                    width: SizingPolicy::Fixed(80),
+                                    height: SizingPolicy::Fixed(30),
+                                    background_color: anchor_kit_core::primitives::color::Color {
+                                        r: 0,
+                                        g: 255,
+                                        b: 0,
+                                        a: 255,
+                                    },
+                                    border_radius: [15.0, 15.0, 15.0, 15.0],
+                                    justify_x: anchor_kit_core::style::Align::Middle,
+                                    justify_y: anchor_kit_core::style::Align::Middle,
+                                    align_x: anchor_kit_core::style::Align::Middle,
+                                    margin: Insets {
+                                        top: 10,
+                                        right: 10,
+                                        bottom: 10,
+                                        left: 0,
+                                    },
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        "row 2".to_string(),
                                         Some(Style {
-                                            background_color:
-                                                anchor_kit_core::primitives::color::Color {
-                                                    r: 0,
-                                                    g: 0,
-                                                    b: 255,
-                                                    a: 150,
-                                                },
-                                            border_color:
-                                                anchor_kit_core::primitives::color::Color {
-                                                    r: 255,
-                                                    g: 0,
-                                                    b: 0,
-                                                    a: 100,
-                                                },
-                                            border_radius: [50.0, 50.0, 50.0, 50.0],
-                                            border_width: 5.0,
-                                            justify_x: anchor_kit_core::style::Align::Middle,
-                                            width: SizingPolicy::Fixed(200),
-                                            height: SizingPolicy::Fixed(75),
+                                            margin: Insets {
+                                                top: 5,
+                                                right: 0,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
                                             ..Default::default()
                                         }),
-                                        |ui| {
-                                            ui.text(
-                                                "World!".to_string(),
-                                                Some(Style {
-                                                    align_y: anchor_kit_core::style::Align::Middle,
-                                                    ..Default::default()
-                                                }),
-                                                Some(TextStyle {
-                                                    font_size: 30.0,
-                                                    line_height: 50.0,
-                                                    font_family:
-                                                        anchor_kit_core::style::FontFamily::Cursive,
-                                                    font_weight:
-                                                        anchor_kit_core::style::FontWeight::Bold,
-                                                    font_style:
-                                                        anchor_kit_core::style::FontStyle::Italic,
-                                                    text_color:
-                                                        anchor_kit_core::primitives::color::Color {
-                                                            r: 0,
-                                                            g: 255,
-                                                            b: 0,
-                                                            a: 100,
-                                                        },
-                                                }),
-                                            );
-                                        },
-                                    )
+                                        Some(TextStyle {
+                                            font_size: 16.0,
+                                            line_height: 20.0,
+                                            text_color: anchor_kit_core::primitives::color::Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 255,
+                                            },
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            ..Default::default()
+                                        }),
+                                    );
+                                },
+                            );
+                            ui.pill(
+                                Some(Style {
+                                    width: SizingPolicy::Fixed(80),
+                                    height: SizingPolicy::Fixed(30),
+                                    background_color: anchor_kit_core::primitives::color::Color {
+                                        r: 0,
+                                        g: 0,
+                                        b: 255,
+                                        a: 255,
+                                    },
+                                    border_radius: [15.0, 15.0, 15.0, 15.0],
+                                    justify_x: anchor_kit_core::style::Align::Middle,
+                                    justify_y: anchor_kit_core::style::Align::Middle,
+                                    align_x: anchor_kit_core::style::Align::Middle,
+                                    margin: Insets {
+                                        top: 10,
+                                        right: 10,
+                                        bottom: 10,
+                                        left: 0,
+                                    },
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        "row 3".to_string(),
+                                        Some(Style {
+                                            margin: Insets {
+                                                top: 5,
+                                                right: 0,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
+                                            ..Default::default()
+                                        }),
+                                        Some(TextStyle {
+                                            font_size: 16.0,
+                                            line_height: 20.0,
+                                            text_color: anchor_kit_core::primitives::color::Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 255,
+                                            },
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            ..Default::default()
+                                        }),
+                                    );
                                 },
                             );
                         },
                     );
                 },
             );
-            ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
+            ui.anchor(AnchorPosition::MiddleCenter, None, |ui| {
                 ui.flex_row(None, |ui| {
-                    ui.text("AnchorKit".to_string(), None, None);
-                    ui.text("with wgpu!".to_string(), None, None);
+                    ui.pill(
+                        Some(Style {
+                            width: SizingPolicy::Fixed(80),
+                            height: SizingPolicy::Fixed(30),
+                            background_color: anchor_kit_core::primitives::color::Color {
+                                r: 100,
+                                g: 100,
+                                b: 0,
+                                a: 255,
+                            },
+                            border_radius: [15.0, 15.0, 15.0, 15.0],
+                            justify_x: anchor_kit_core::style::Align::Middle,
+                            justify_y: anchor_kit_core::style::Align::Middle,
+                            align_x: anchor_kit_core::style::Align::Middle,
+                            margin: Insets {
+                                top: 10,
+                                right: 10,
+                                bottom: 10,
+                                left: 0,
+                            },
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.text(
+                                "col 1".to_string(),
+                                Some(Style {
+                                    margin: Insets {
+                                        top: 5,
+                                        right: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    ..Default::default()
+                                }),
+                                Some(TextStyle {
+                                    font_size: 16.0,
+                                    line_height: 20.0,
+                                    text_color: anchor_kit_core::primitives::color::Color {
+                                        r: 255,
+                                        g: 255,
+                                        b: 255,
+                                        a: 255,
+                                    },
+                                    font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                    ..Default::default()
+                                }),
+                            );
+                        },
+                    );
+                    ui.pill(
+                        Some(Style {
+                            width: SizingPolicy::Fixed(80),
+                            height: SizingPolicy::Fixed(30),
+                            background_color: anchor_kit_core::primitives::color::Color {
+                                r: 0,
+                                g: 100,
+                                b: 100,
+                                a: 255,
+                            },
+                            border_radius: [15.0, 15.0, 15.0, 15.0],
+                            justify_x: anchor_kit_core::style::Align::Middle,
+                            justify_y: anchor_kit_core::style::Align::Middle,
+                            align_x: anchor_kit_core::style::Align::Middle,
+                            margin: Insets {
+                                top: 10,
+                                right: 10,
+                                bottom: 10,
+                                left: 0,
+                            },
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.text(
+                                "col 2".to_string(),
+                                Some(Style {
+                                    margin: Insets {
+                                        top: 5,
+                                        right: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    ..Default::default()
+                                }),
+                                Some(TextStyle {
+                                    font_size: 16.0,
+                                    line_height: 20.0,
+                                    text_color: anchor_kit_core::primitives::color::Color {
+                                        r: 255,
+                                        g: 255,
+                                        b: 255,
+                                        a: 255,
+                                    },
+                                    font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                    ..Default::default()
+                                }),
+                            );
+                        },
+                    );
+                    ui.pill(
+                        Some(Style {
+                            width: SizingPolicy::Fixed(80),
+                            height: SizingPolicy::Fixed(30),
+                            background_color: anchor_kit_core::primitives::color::Color {
+                                r: 100,
+                                g: 0,
+                                b: 100,
+                                a: 255,
+                            },
+                            border_radius: [15.0, 15.0, 15.0, 15.0],
+                            justify_x: anchor_kit_core::style::Align::Middle,
+                            justify_y: anchor_kit_core::style::Align::Middle,
+                            align_x: anchor_kit_core::style::Align::Middle,
+                            margin: Insets {
+                                top: 10,
+                                right: 10,
+                                bottom: 10,
+                                left: 0,
+                            },
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.text(
+                                "col 3".to_string(),
+                                Some(Style {
+                                    margin: Insets {
+                                        top: 5,
+                                        right: 0,
+                                        bottom: 0,
+                                        left: 0,
+                                    },
+                                    ..Default::default()
+                                }),
+                                Some(TextStyle {
+                                    font_size: 16.0,
+                                    line_height: 20.0,
+                                    text_color: anchor_kit_core::primitives::color::Color {
+                                        r: 255,
+                                        g: 255,
+                                        b: 255,
+                                        a: 255,
+                                    },
+                                    font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                    ..Default::default()
+                                }),
+                            );
+                        },
+                    );
                 });
-            })
+            });
+            ui.anchor(
+                anchor_kit_core::anchor::AnchorPosition::BottomCenter,
+                None,
+                |ui| {
+                    ui.flex_row(
+                        Some(Style {
+                            justify_x: anchor_kit_core::style::Align::End,
+                            width: anchor_kit_core::style::SizingPolicy::Fixed(800),
+                            height: anchor_kit_core::style::SizingPolicy::Fixed(150),
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.pill(
+                                Some(Style {
+                                    background_color: anchor_kit_core::primitives::color::Color {
+                                        r: 100,
+                                        g: 50,
+                                        b: 50,
+                                        a: 255,
+                                    },
+                                    border_radius: [20.0, 20.0, 20.0, 15.0],
+                                    justify_x: anchor_kit_core::style::Align::Middle,
+                                    justify_y: anchor_kit_core::style::Align::Middle,
+                                    align_y: anchor_kit_core::style::Align::Start,
+                                    margin: Insets {
+                                        top: 10,
+                                        right: 10,
+                                        bottom: 10,
+                                        left: 0,
+                                    },
+                                    padding: Insets {
+                                        top: 5,
+                                        right: 20,
+                                        bottom: 10,
+                                        left: 20,
+                                    },
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        "justify end - align start".to_string(),
+                                        Some(Style {
+                                            margin: Insets {
+                                                top: 5,
+                                                right: 0,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
+                                            ..Default::default()
+                                        }),
+                                        Some(TextStyle {
+                                            font_size: 16.0,
+                                            line_height: 20.0,
+                                            text_color: anchor_kit_core::primitives::color::Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 255,
+                                            },
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            ..Default::default()
+                                        }),
+                                    );
+                                },
+                            );
+                            ui.pill(
+                                Some(Style {
+                                    background_color: anchor_kit_core::primitives::color::Color {
+                                        r: 0,
+                                        g: 100,
+                                        b: 100,
+                                        a: 255,
+                                    },
+                                    border_radius: [20.0, 20.0, 20.0, 20.0],
+                                    justify_x: anchor_kit_core::style::Align::Middle,
+                                    justify_y: anchor_kit_core::style::Align::Middle,
+                                    align_y: anchor_kit_core::style::Align::Middle,
+                                    margin: Insets {
+                                        top: 10,
+                                        right: 10,
+                                        bottom: 10,
+                                        left: 0,
+                                    },
+                                    padding: Insets {
+                                        top: 5,
+                                        right: 20,
+                                        bottom: 10,
+                                        left: 20,
+                                    },
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        "justify end - align middle".to_string(),
+                                        Some(Style {
+                                            margin: Insets {
+                                                top: 5,
+                                                right: 0,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
+                                            ..Default::default()
+                                        }),
+                                        Some(TextStyle {
+                                            font_size: 16.0,
+                                            line_height: 20.0,
+                                            text_color: anchor_kit_core::primitives::color::Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 255,
+                                            },
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            ..Default::default()
+                                        }),
+                                    );
+                                },
+                            );
+                            ui.pill(
+                                Some(Style {
+                                    background_color: anchor_kit_core::primitives::color::Color {
+                                        r: 100,
+                                        g: 0,
+                                        b: 100,
+                                        a: 255,
+                                    },
+                                    border_radius: [20.0, 20.0, 20.0, 20.0],
+                                    justify_x: anchor_kit_core::style::Align::Middle,
+                                    justify_y: anchor_kit_core::style::Align::Middle,
+                                    align_y: anchor_kit_core::style::Align::End,
+                                    margin: Insets {
+                                        top: 10,
+                                        right: 10,
+                                        bottom: 10,
+                                        left: 0,
+                                    },
+                                    padding: Insets {
+                                        top: 5,
+                                        right: 20,
+                                        bottom: 10,
+                                        left: 20,
+                                    },
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.text(
+                                        "justify end - align end".to_string(),
+                                        Some(Style {
+                                            margin: Insets {
+                                                top: 5,
+                                                right: 0,
+                                                bottom: 0,
+                                                left: 0,
+                                            },
+                                            ..Default::default()
+                                        }),
+                                        Some(TextStyle {
+                                            font_size: 16.0,
+                                            line_height: 20.0,
+                                            text_color: anchor_kit_core::primitives::color::Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 255,
+                                            },
+                                            font_weight: anchor_kit_core::style::FontWeight::Bold,
+                                            ..Default::default()
+                                        }),
+                                    );
+                                },
+                            );
+                        },
+                    );
+                },
+            );
         });
 
         let screen_info = ScreenInfo {
@@ -325,9 +657,9 @@ impl State {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {
-                        r: 0.1,
-                        g: 0.3,
-                        b: 0.1,
+                        r: 1.0,
+                        g: 1.0,
+                        b: 1.0,
                         a: 1.0,
                     }),
                     store: wgpu::StoreOp::Store,
