@@ -1,6 +1,6 @@
 # anchor-kit
 
-anchor-kit is a lightweight, immediate-mode UI rendering library for non-interactive overlay data visualization. It enables responsive layouts, so users don't have worry about resizing their elements manually when data changes, while still enabling a simple immediate-mode rendering framework. This is posisble since anchor-kit is purpose-built for non-interactive cases where no user input events are expected.
+anchor-kit is a lightweight, immediate-mode UI rendering library for non-interactive overlay data visualization. It enables responsive layouts, so users don't have to worry about resizing their elements manually when data changes, while still enabling a simple, immediate-mode rendering framework. This is possible since anchor-kit is purpose-built for non-interactive cases where no user input events are expected.
 
 `cargo add anchor-kit-core && cargo add anchor-kit-wgpu`
 
@@ -102,8 +102,21 @@ self.queue.submit(iter::once(encoder.finish())); // submit everything to be rend
 https://github.com/user-attachments/assets/815acfab-0847-4df1-992b-09b16ae6940d
 
 
-
 ## Developer's Guide
+
+anchor-kit is designed as a set of packages which developers can use to integrate directly into their existing rendering loops. The primary package is [anchor-kit-core](https://crates.io/crates/anchor-kit-core), which defines the elements, primitives and styling, handles the responsive layout and provides the easy-to-use declarative API for GUI creation. We also have an integration with wgpu ([anchor-kit-wgpu](https://crates.io/crates/anchor-kit-wgpu)), which developers can use to convert the primitives into renderable data and add it to their wgpu frame buffers.
+
+At a high-level, to integrate anchor-kit into a wgpu rendering pipeline, there are three steps:
+
+1. Instantiate a new `anchor_kit_wgpu::Renderer` (and register textures if required)
+2. Call the `anchor_kit_core::generate_frame` function, passing in the GUI description using the declarative API to get the list of renderable primitives
+3. Call the `anchor_kit_wgpu::Renderer::render()` function, passing in the generated primitives to add the data to the wgpu frame buffers
+
+To get started with anchor-kit:
+
+`cargo add anchor-kit-core && cargo add anchor-kit-wgpu`
+
+
 
 ## Reproducibility Guide
 
