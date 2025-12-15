@@ -30,6 +30,8 @@ https://www.youtube.com/watch?v=7skxVpKRIko
 
 ## Motivation
 
+
+
 ## Objectives
 
 ## Features
@@ -252,12 +254,33 @@ Use the examples above in the features section and in the demo/ presentation vid
 
 ## Contributions by each team member
 
+**Chris:**
+- core layout system
+    - measure pass
+    - layout pass
+    - render pass
+- renderable elements
+    - anchors
+    - text
+    - flex rows/ cols
+    - images
+    - dividers
+    - pills
+- element styling
+- wgpu integration
+    - main rendering pipeline
+    - image rendering pipeline
+    - shader development (vertex & fragment shaders)
+- help with examples
+
+**Piotr:**
+
 ## Lessons Learned
 
 Computer graphics and rendering are quite hard. Going into the project, we didn't fully understand all of the intricacies involved in creating a rendering library, even one with a relatively limited scope like anchor-kit. We didn't expect the amount of work required to get simple things like rounded corners or texture rendering. It was especially interesting to learn about shader development, which is something that we hadn't done before. Since we were new to shader development, it was very fun, albeit time-consuming, to learn about to differences between the types of shaders, how to hook them up to rendering pipelines, and all of the math involved in various coordinate systems and concepts like signed distance functions. We are very grateful for Inigo Quilez and the vast library of [open source shader development tutorials](https://iquilezles.org/articles/distfunctions2d/) he has published. His tutorials came in handy and were greatly appreciated when dealing with late-night shader debugging.
 
 Another lesson learned early on in anchor-kit's development was the importance of separating concerns with regard to our core layout framework. Initially, we aimed to convert user-defined elements (via their closure functions) to renderable primitives in a _single pass_. Trying to measure elements, determine their layouts and actually convert them to primitives all at the same time proved to be very messy and led to a plethora of issues in anchor-kit's early development. After taking a step back, and doing some deep reading on best practices with render trees, we ended up determining that the best course of action was to separate the concerns into our three core passes (measure, layout, and render), which greatly reduced the complexity of our layout system and made rendering elements significantly easier. With this, we learned the importance of taking a step back to think about first principles and getting a better understanding of best practices before diving deep into actual development. We also gained a much better understanding of just what it takes to actually enable responsive elements and complex styling, which we often take for granted, especially when developing web applications. 
 
-## Future work
+## Future Work
 - We plan to add new element integrations to `anchor-kit-core` to enable more complex data visualizations and provide users with even simpler APIs to create their desired GUIs.
 - We also want to add new rendering library integrations, likely starting with a dedicated library for `winit`, which should help reduce the amount of boilerplate the user needs to add to get a GUI rendering in a window.
