@@ -13,7 +13,7 @@ use chrono::prelude::*;
 use anchor_kit_core::{
     anchor::AnchorPosition,
     primitives::color::Color,
-    style::{SizingPolicy, Style, TextStyle},
+    style::{Insets, SizingPolicy, Style, TextStyle},
 };
 use anchor_kit_core::{FrameInfo as UiFrameInfo, UIState};
 use anchor_kit_wgpu::{Renderer, ScreenInfo as GpuFrameInfo};
@@ -138,8 +138,6 @@ impl State {
         //self.window.request_redraw();
 
         self.data.time = Local::now();
-        self.data.speed += 1;
-        self.data.rpm += 1;
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
@@ -179,35 +177,96 @@ impl State {
                         |ui| {
                             ui.flex_row(
                                 Some(Style {
-                                    height: SizingPolicy::Fixed(2400),
                                     align_x: anchor_kit_core::style::Align::Middle,
                                     ..Default::default()
                                 }),
                                 |ui| {
-                                    ui.text(
-                                        self.data.time.to_string(),
+                                    ui.pill(
                                         Some(Style {
-                                            height: SizingPolicy::Fixed(2400),
                                             background_color: Color {
-                                                r: 0,
-                                                g: 0,
-                                                b: 0,
-                                                a: 255,
-                                            },
-                                            ..Default::default()
-                                        }),
-                                        Some(TextStyle {
-                                            font_size: 32.0,
-                                            font_family:
-                                                anchor_kit_core::style::FontFamily::Monospace,
-                                            text_color: Color {
                                                 r: 255,
-                                                g: 0,
-                                                b: 0,
+                                                g: 255,
+                                                b: 255,
+                                                a: 127,
+                                            },
+                                            border_color: Color {
+                                                r: 50,
+                                                g: 50,
+                                                b: 50,
                                                 a: 255,
                                             },
+                                            border_radius: [10.0, 10.0, 10.0, 10.0],
+                                            border_width: 3.0,
+                                            padding: Insets { top: 5, right: 5, bottom: 5, left: 5 },
                                             ..Default::default()
                                         }),
+                                        |ui| {
+                                            ui.text(
+                                                self.data.time.format("%d/%b/%Y | %H:%M:%S.%3f").to_string(),
+                                                Some(Style{
+                                                    padding: Insets { top: 5, right: 80, bottom: 5, left: 5 },
+                                                    ..Default::default()
+                                                }),
+                                                Some(TextStyle {
+                                                    font_size: 32.0,
+                                                    font_family:
+                                                        anchor_kit_core::style::FontFamily::Monospace,
+                                                    text_color: Color {
+                                                        r: 255,
+                                                        g: 0,
+                                                        b: 0,
+                                                        a: 255,
+                                                    },
+                                                    ..Default::default()
+                                                }),
+                                            );
+                                        },
+                                    );
+                                },
+                            );
+                        },
+                    );
+                },
+            );
+            ui.anchor(
+                AnchorPosition::BottomLeft,
+                Some(Style {
+                    ..Default::default()
+                }),
+                |ui| {
+                    ui.flex_column(
+                        Some(Style {
+                            ..Default::default()
+                        }),
+                        |ui| {
+                            ui.flex_row(
+                                Some(Style {
+                                    align_x: anchor_kit_core::style::Align::Middle,
+                                    ..Default::default()
+                                }),
+                                |ui| {
+                                    ui.pill(
+                                        Some(Style {
+                                            background_color: Color {
+                                                r: 255,
+                                                g: 255,
+                                                b: 255,
+                                                a: 127,
+                                            },
+                                            border_color: Color {
+                                                r: 50,
+                                                g: 50,
+                                                b: 50,
+                                                a: 255,
+                                            },
+                                            border_radius: [10.0, 10.0, 10.0, 10.0],
+                                            border_width: 3.0,
+                                            padding: Insets { top: 5, right: 5, bottom: 5, left: 5 },
+                                            ..Default::default()
+                                        }),
+                                        |ui| {
+
+                                        }
                                     );
                                 },
                             );
