@@ -37,6 +37,29 @@ anchor_kit_wgpu_renderer.render(
 self.queue.submit(iter::once(encoder.finish())); // submit everything to be rendered by wgpu (including the anchor-kit pass)
 ```
 
+**Anchor positions:**
+
+<img width="573" height="449" alt="Screenshot 2025-12-15 at 2 39 05 AM" src="https://github.com/user-attachments/assets/4d92d418-e021-4fd9-a0be-926976b7ba01" />
+
+**Flex elements:**
+
+<img width="575" height="453" alt="Screenshot 2025-12-15 at 2 39 28 AM" src="https://github.com/user-attachments/assets/d72fd696-9406-463f-82de-f27c69ccf88d" />
+
+**Pill elements:**
+
+<img width="569" height="448" alt="Screenshot 2025-12-15 at 2 40 16 AM" src="https://github.com/user-attachments/assets/e81c6ed6-09ad-4741-a849-b2529804f0af" />
+
+**Image element:**
+
+<img width="570" height="448" alt="Screenshot 2025-12-15 at 2 40 34 AM" src="https://github.com/user-attachments/assets/d3f7fcb4-aabc-4737-8916-4e35c4ac32bf" />
+
+**Text elements:**
+
+<img width="573" height="448" alt="Screenshot 2025-12-15 at 2 41 00 AM" src="https://github.com/user-attachments/assets/c239dda8-bb34-476f-b426-8e4b65a333f2" />
+
+**Divider elements:**
+
+<img width="569" height="448" alt="Screenshot 2025-12-15 at 2 41 27 AM" src="https://github.com/user-attachments/assets/a67a78a0-96e4-44f1-b822-ef76854a1e5c" />
 
 
 ### Lessons Learned
