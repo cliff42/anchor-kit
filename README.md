@@ -36,11 +36,12 @@ Aside from aiming to create a unique rendering approach to fill this gap in the 
 
 ## Objectives
 
-**Enable responsive UI elements that work seamlessly with dynamic data**
+**Enable responsive UI elements that work seamlessly with dynamic data:**
+    - 
 
-**Expose and easy-to-use declarative API**
+**Expose and easy-to-use declarative API:**
 
-**Support extensible integration with common Rust rendering pipelines**
+**Support extensible integration with common Rust rendering pipelines:**
 
 ## Features
 
