@@ -37,11 +37,19 @@ Aside from aiming to create a unique rendering approach to fill this gap in the 
 ## Objectives
 
 **Enable responsive UI elements that work seamlessly with dynamic data:**
-    - 
+
+- We want to enable the retained-mode-like feature of responsive layouts and automatic element resizing, so that users do not have to manually account for changes in the size & format of any dynamic data.
+- Responsive layouts and dynamic resizing is enabled by accounting for both the content of rendered elements, alongside any styling attributes that are supplied by the user.
 
 **Expose and easy-to-use declarative API:**
 
+- anchor-kit should support an easy-to-use and understand declarative API that allows users, particularly those with web development experience, to develop complex and professional GUIs for data visualization in Rust.
+- Our API is heavily inspired by existing paradigms in HTML and CSS, which provides a simple and well-known interface for styling. This will enable many users, including those not already familiar with rendering in Rust to get started creating GUIs.
+
 **Support extensible integration with common Rust rendering pipelines:**
+
+- The core layout and element library (anchor-kit-core) is developed to be rendering-agnostic, meaning that we can hook existing rendering pipelines into anchor-kit, where they consume the renderable primitives using separate integration packages.
+- For the scope of this project, we chose to add an integration with [wgpu](https://docs.rs/wgpu/latest/wgpu/), which is one of the most popular and widely-used graphics APIs in Rust.
 
 ## Features
 
