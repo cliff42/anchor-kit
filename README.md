@@ -64,6 +64,22 @@ The core functionality behind anchor-kit is the simple API it provides for users
 
 <img width="775" height="303" alt="Screenshot 2025-12-15 at 3 10 16 AM" src="https://github.com/user-attachments/assets/c093b2d2-a1ef-4a10-a635-8248fb4b5804" />
 
+**Shaders**
+
+Although they aren't written directly in Rust (they are written in [wgsl](https://www.w3.org/TR/WGSL/)), anchor-kit's shaders make up a core portion of the anchor-kit-wgpu integration package. These shaders are responsible for handing off the vertices created CPU-side to the GPU for actual rendering. Without these shaders enabling GPU-accelerated rendering, anchor-kit would be quite inefficient, and not suitable for real-world applications.
+
+_Vertex shader_:
+
+The vertex shader implemented in anchor-kit is quite simple. It simply converts our screen-space coordinates into [normalized device coordinates](https://learnopengl.com/Getting-started/Coordinate-Systems), and then flips the y-axis for rendering on the GPU. 
+
+_Fragment shaders_:
+
+The fragment shaders are more complex and interesting, but still relatively simple compared to what can be done with advanced shader implementations. anchor-kit uses two fragment shaders, one for image rendering, which takes in a texture bind group from our image rendering pipeline, and a simpler shader, which has no texture bind grou,p which runs through our main rendering pipeline, and is used for non-textured elements such as pills.
+
+Both of our fragment shaders implement [signed distance functions](https://en.wikipedia.org/wiki/Signed_distance_function) to enable borders and corner rounding, as well as simple anti-aliasing to smooth out element corners. Our fragment shaders were heavily inspired by the wonderful [open source tutorial library](https://iquilezles.org/articles/distfunctions2d/) created by Inigo Quilez.
+
+**Layout system:**
+
 In anchor-kit, users create their GUI structures (made up of anchor-kit elements) through the use of nested closure functions as parameters to the anchor-kit-core `generate_frame` function. This function takes the user input tree of element closures and converts it into renderable primitives, which are eventually sent to the GPU for actual rendering.
 
 During the `generate_frame` function, anchor-kit runs elements through its multi-pass layout system, which is the core logic behind our powerful responsive layouts.
