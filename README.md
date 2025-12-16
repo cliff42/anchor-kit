@@ -136,7 +136,9 @@ ui.anchor(AnchorPosition::TopCenter, None, |ui| {
 
 <img width="575" height="453" alt="Screenshot 2025-12-15 at 2 39 28 AM" src="https://github.com/user-attachments/assets/d72fd696-9406-463f-82de-f27c69ccf88d" />
 
-Above are various examples of ways `flex_row`s and `flex_column`s can be arranged within an `anchor` point. On top is a `flex_column` rendering multiple rows, and in the middle is a `flex_row` rendering multiple columns. At the bottom is shown how `Style` options can affect positions of these elements within, specifically showing how `alignment_y` takes effect in a `flex_row`.
+Above are various examples of ways `flex_row`s and `flex_column`s can be arranged within an `anchor` point. On top is a `flex_column` rendering multiple rows, and in the middle is a `flex_row` rendering multiple columns. At the bottom is shown how `Style` options can affect positions of these elements within, specifically showing how `align_y` takes effect in a `flex_row`.
+
+Flex elements can justify their child elements to the start, middle and end of their layouts, and children elements themselves and use the `align` styling attributes to align themselves within the flex elements.
 
 ```
 ui.flex_row(<Style>, |closure|);
@@ -152,6 +154,8 @@ ui.flex_row(None, |ui| {
 <img width="569" height="448" alt="Screenshot 2025-12-15 at 2 40 16 AM" src="https://github.com/user-attachments/assets/e81c6ed6-09ad-4741-a849-b2529804f0af" />
 
 Above shows various permutations of the `pill` element, a basic shape provided within `anchor-kit`. This is a flexible element that is programmable with the `Style` parameter passed in. This element is modifiable by every option within the `Style` parameter.
+
+In anchor-kit's current state, pill elements act as the primary method to add backgrounds to other elements when not wanting to use a texture (with an image element). Similar to flex elements, pills can also contain children and use the `justify_<axis>` styling attributes to align their children. 
 
 ```
 ui.pill(<Style>, |closure|);
@@ -172,7 +176,9 @@ ui.pill(
 
 <img width="570" height="448" alt="Screenshot 2025-12-15 at 2 40 34 AM" src="https://github.com/user-attachments/assets/d3f7fcb4-aabc-4737-8916-4e35c4ac32bf" />
 
-Above shows an example of rendering an image texture onto the window. Displaying these requires a few extra steps before they can be rendered onto a window. First, an image file has to be read in as bytes, and second, the image has to be processed using the `Renderer`s `get_image_id_from_btyes` functions. This generates a `Uuid` for the image that is then used to render it.
+Above shows an example of rendering an image texture onto the window. Displaying these requires a few extra steps before they can be rendered onto a window. First, an image file (texture) has to be read in as bytes, and second, the texture has to be registered using the `Renderer`s `get_image_id_from_btyes` functions. This generates a `Uuid` for the image that is then used to render it.
+
+Behind the scenes, image elements also rely on `rectangle` primitives, which means users can also add styling to images similar to pills (border radius etc.).
 
 ```
 ui.image(<Image: Uuid>, <Style>);
@@ -197,6 +203,8 @@ ui.image(
 <img width="573" height="448" alt="Screenshot 2025-12-15 at 2 41 00 AM" src="https://github.com/user-attachments/assets/c239dda8-bb34-476f-b426-8e4b65a333f2" />
 
 Above shows an example of `text` rendering with various `TextStyle`s applied to them. `TextStyle` is a distinct styling parameter from `Style` that is exclusively used for formatting how text will be output, with various font options and a colour setting.
+
+For the scope of this project, we chose to use the [glyphon](https://github.com/grovesNL/glyphon) library to handle text rendering rather than creating our own glyph system. This was primarily done to save time and avoid repeating work that has already been done, since creating a custom glyph/ text rendering engine from scratch is quite complicated. [glyphon](https://github.com/grovesNL/glyphon) has a variety of features that are well-suited to anchor-kit, and it natively integrates with wgpu, which fits nicely into our `anchor-kit-wgpu` integration.  
 
 ```
 pub struct TextStyle {
