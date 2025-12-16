@@ -119,7 +119,7 @@ pub struct Style {
 
 <img width="573" height="449" alt="Screenshot 2025-12-15 at 2 39 05 AM" src="https://github.com/user-attachments/assets/4d92d418-e021-4fd9-a0be-926976b7ba01" />
 
-Above are the various options for `anchor` points within the grid system, each section you make can be broken down into a 3x3, as shown.
+Above are the various options for `anchor` points within the grid system. Each section you make can be broken down into a 3x3, as shown.
 ```
 ui.anchor(<AnchorPosition>, <Style>, |closure|)
 
@@ -131,7 +131,7 @@ ui.anchor(AnchorPosition::TopCenter, None, |ui| {
 
 <img width="575" height="453" alt="Screenshot 2025-12-15 at 2 39 28 AM" src="https://github.com/user-attachments/assets/d72fd696-9406-463f-82de-f27c69ccf88d" />
 
-Above are various examples of ways `flex_row`s and `flex_column`s can be arraged within an `anchor` point. On top is a `flex_column` rendering multiple rows, and in the middle is a `flex_row` rendering multiple columns. At the bottom is shown how `Style` options can affect positions of these elements within, specifically showing how `alignment_y` takes affect in a `flex_row`.
+Above are various examples of ways `flex_row`s and `flex_column`s can be arranged within an `anchor` point. On top is a `flex_column` rendering multiple rows, and in the middle is a `flex_row` rendering multiple columns. At the bottom is shown how `Style` options can affect positions of these elements within, specifically showing how `alignment_y` takes effect in a `flex_row`.
 
 ```
 ui.flex_row(<Style>, |closure|);
@@ -146,7 +146,7 @@ ui.flex_row(None, |ui| {
 
 <img width="569" height="448" alt="Screenshot 2025-12-15 at 2 40 16 AM" src="https://github.com/user-attachments/assets/e81c6ed6-09ad-4741-a849-b2529804f0af" />
 
-Aboce shows various permuations of the `pill` element; a basic shape provided within `anchor-kit`. This is a flexible element that is premuatable with the `Style` parameter passed in. This element is modifiable by every option within the `Style` parameter.
+Above shows various permutations of the `pill` element, a basic shape provided within `anchor-kit`. This is a flexible element that is programmable with the `Style` parameter passed in. This element is modifiable by every option within the `Style` parameter.
 
 ```
 ui.pill(<Style>, |closure|);
@@ -167,7 +167,7 @@ ui.pill(
 
 <img width="570" height="448" alt="Screenshot 2025-12-15 at 2 40 34 AM" src="https://github.com/user-attachments/assets/d3f7fcb4-aabc-4737-8916-4e35c4ac32bf" />
 
-Above shows an example of rendering an image texture onto the window. Displaying these requires a few extra steps before they can be rendered onto a winodow. First, an image file has to be read in as bytes, and second, the image has to be processed using the `Renderer`s `get_image_id_from_btyes` functions. This generates a `Uuid` for the image that is then used to render it.
+Above shows an example of rendering an image texture onto the window. Displaying these requires a few extra steps before they can be rendered onto a window. First, an image file has to be read in as bytes, and second, the image has to be processed using the `Renderer`s `get_image_id_from_btyes` functions. This generates a `Uuid` for the image that is then used to render it.
 
 ```
 ui.image(<Image: Uuid>, <Style>);
@@ -191,7 +191,7 @@ ui.image(
 
 <img width="573" height="448" alt="Screenshot 2025-12-15 at 2 41 00 AM" src="https://github.com/user-attachments/assets/c239dda8-bb34-476f-b426-8e4b65a333f2" />
 
-Above shows an example of `text` rendering with various `TextStyle`s applied to them. `TextStyle` is a distinct styling paramater from `Style` that is exclusivly used for formating how text will be output, with various font options and a color setting.
+Above shows an example of `text` rendering with various `TextStyle`s applied to them. `TextStyle` is a distinct styling parameter from `Style` that is exclusively used for formatting how text will be output, with various font options and a colour setting.
 
 ```
 pub struct TextStyle {
@@ -233,24 +233,63 @@ ui.text(
 
 **Divider elements:**
 
-<img width="569" height="448" alt="Screenshot 2025-12-15 at 2 41 27 AM" src="https://github.com/user-attachments/assets/a67a78a0-96e4-44f1-b822-ef76854a1e5c" />
+<img width="801" height="629" alt="Screenshot 2025-12-15 at 6 09 23 PM" src="https://github.com/user-attachments/assets/b11c4775-73d4-4afc-bbbb-f2aab69489aa" />
 
-Above shows an example using the `divider` element. This element can be used to dvide up a `flex_row` or `flex_column` with lines to create visual seperation such as for a table.
+Above shows an example using the `divider` element. This element can be used to divide up a `flex_row` or `flex_column` with lines to create visual separation, such as for a table.
 
 ```
-ui.divider(<DividerOrientation>, <Thickness: u32>, <Style>);
-
-ui.flex_column(None, |ui| {
+ui.anchor(AnchorPosition::TopCenter, None, |ui| {
+    ui.flex_column(
+        Some(Style {
+            width: SizingPolicy::FillParent,
+            height: SizingPolicy::FillParent,
+            justify_y: anchor_kit_core::style::Align::Start,
+            ..Default::default()
+        }),
+        |ui| {
+            ui.divider(
+                anchor_kit_core::element::DividerOrientation::Horizontal,
+                2,
+                Some(Style {
+                    margin: Insets {
+                        top: 20,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                }),
+            );
+        },
+    );
+});
+ui.anchor(AnchorPosition::MiddleCenter, None, |ui| {
     ui.flex_row(None, |ui| {
-        ui.text("top_left".to_string(), None, None);
-        ui.divider(anchor_kit_core::element::DividerOrientation::Vertical, 10, None);
-        ui.text("top_right".to_string(), None, None);
-    });
-    ui.divider(anchor_kit_core::element::DividerOrientation::Horizontal, 10, None);
-    ui.flex_row(None, |ui| {
-        ui.text("bottom_left".to_string(), None, None);
-        ui.divider(anchor_kit_core::element::DividerOrientation::Vertical, 10, None);
-        ui.text("bottom_right".to_string(), None, None);
+        ui.text("col 1".to_string(), None, None);
+        ui.divider(
+            anchor_kit_core::element::DividerOrientation::Vertical,
+            2,
+            Some(Style {
+                margin: Insets {
+                    left: 5,
+                    right: 5,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+        );
+        ui.text("col 2".to_string(), None, None);
+        ui.divider(
+            anchor_kit_core::element::DividerOrientation::Vertical,
+            2,
+            Some(Style {
+                margin: Insets {
+                    left: 5,
+                    right: 5,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }),
+        );
+        ui.text("col 3".to_string(), None, None);
     });
 });
 ```
