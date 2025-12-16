@@ -294,16 +294,12 @@ fn measure_divider_size(
             thickness
                 .saturating_add(style.padding.top)
                 .saturating_add(style.padding.bottom)
-                .saturating_add(style.margin.left)
-                .saturating_add(style.margin.right),
         ],
         // takes up entire height but only thickness width
         DividerOrientation::Vertical => [
             thickness
                 .saturating_add(style.padding.left)
-                .saturating_add(style.padding.right)
-                .saturating_add(style.margin.left)
-                .saturating_add(style.margin.right),
+                .saturating_add(style.padding.right),
             constraints.max_size[1],
         ],
     };
