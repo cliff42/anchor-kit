@@ -95,25 +95,141 @@ pub struct Style {
 
 <img width="573" height="449" alt="Screenshot 2025-12-15 at 2 39 05 AM" src="https://github.com/user-attachments/assets/4d92d418-e021-4fd9-a0be-926976b7ba01" />
 
+Above are the various options for `anchor` points within the grid system, each section you make can be broken down into a 3x3, as shown.
+```
+ui.anchor(<AnchorPosition>, <Style>, |closure|)
+
+ui.anchor(AnchorPosition::TopCenter, None, |ui| {
+    ui.flex_row(...
+```
+
 **Flex elements:**
 
 <img width="575" height="453" alt="Screenshot 2025-12-15 at 2 39 28 AM" src="https://github.com/user-attachments/assets/d72fd696-9406-463f-82de-f27c69ccf88d" />
+
+Above are various examples of ways `flex_row`s and `flex_column`s can be arraged within an `anchor` point. On top is a `flex_column` rendering multiple rows, and in the middle is a `flex_row` rendering multiple columns. At the bottom is shown how `Style` options can affect positions of these elements within, specifically showing how `alignment_y` takes affect in a `flex_row`.
+
+```
+ui.flex_row(<Style>, |closure|);
+ui.flex_column(<Style>, |closure|);
+
+ui.flex_row(None, |ui| {
+    ui.text("col1".to_string() ...
+    ui.text("col2".to_string() ...
+```
 
 **Pill elements:**
 
 <img width="569" height="448" alt="Screenshot 2025-12-15 at 2 40 16 AM" src="https://github.com/user-attachments/assets/e81c6ed6-09ad-4741-a849-b2529804f0af" />
 
+Aboce shows various permuations of the `pill` element; a basic shape provided within `anchor-kit`. This is a flexible element that is premuatable with the `Style` parameter passed in. This element is modifiable by every option within the `Style` parameter.
+
+```
+ui.pill(<Style>, |closure|);
+
+ui.pill(
+    Some(Style{
+        background_color: ... ,
+        border_radius: ... ,
+        border_color: ... ,
+        padding: ... ,
+        ..Default::default()
+    }),
+    |ui| { ... }
+);
+```
+
 **Image element:**
 
 <img width="570" height="448" alt="Screenshot 2025-12-15 at 2 40 34 AM" src="https://github.com/user-attachments/assets/d3f7fcb4-aabc-4737-8916-4e35c4ac32bf" />
+
+Above shows an example of rendering an image texture onto the window. Displaying these requires a few extra steps before they can be rendered onto a winodow. First, an image file has to be read in as bytes, and second, the image has to be processed using the `Renderer`s `get_image_id_from_btyes` functions. This generates a `Uuid` for the image that is then used to render it.
+
+```
+ui.image(<Image: Uuid>, <Style>);
+
+let mut renderer = Renderer::new(...);
+let diffuse_bytes = include_bytes!("example.png");
+let image_uuid = renderer.get_image_id_from_bytes(<Device>, <Queue>, diffuse_bytes);
+...
+ui.image(
+    image_uuid,
+    Some(Style {
+        width: anchor_kit_core::style::SizingPolicy::Fixed(400),
+        height: anchor_kit_core::style::SizingPolicy::Fixed(500),
+        border_radius: [40.0, 0.0, 40.0, 0.0],
+        ..Default::default()
+    })
+);
+```
 
 **Text elements:**
 
 <img width="573" height="448" alt="Screenshot 2025-12-15 at 2 41 00 AM" src="https://github.com/user-attachments/assets/c239dda8-bb34-476f-b426-8e4b65a333f2" />
 
+Above shows an example of `text` rendering with various `TextStyle`s applied to them. `TextStyle` is a distinct styling paramater from `Style` that is exclusivly used for formating how text will be output, with various font options and a color setting.
+
+```
+pub struct TextStyle {
+    pub font_size: f32,            // Font size
+    pub line_height: f32,          // Line height
+    pub font_family: FontFamily,   // Select included font family or import your own
+    pub font_weight: FontWeight,   // Thin, ExtraLight, Light, Normal, Medium, SemiBold... 
+    pub font_style: FontStyle,     // Normal, Italic, Bold
+    pub text_color: Color,         // Text color
+}
+
+ui.text(<Text: String>, <Style>, <TextStyle>);
+
+ui.text(
+    "Hello World with Anchor-Kit!".to_string(),
+    Some(Style {
+        margin: Insets {
+            top: 5,
+            right: 0,
+            bottom: 0,
+            left: 0,
+        },
+        ..Default::default()
+    }),
+    Some(TextStyle {
+        font_size: 16.0,
+        line_height: 20.0,
+        text_color: anchor_kit_core::primitives::color::Color {
+            r: 255,
+            g: 255,
+            b: 255,
+            a: 255,
+        },
+        font_weight: anchor_kit_core::style::FontWeight::Bold,
+        ..Default::default()
+    }),
+);
+```
+
 **Divider elements:**
 
 <img width="569" height="448" alt="Screenshot 2025-12-15 at 2 41 27 AM" src="https://github.com/user-attachments/assets/a67a78a0-96e4-44f1-b822-ef76854a1e5c" />
+
+Above shows an example using the `divider` element. This element can be used to dvide up a `flex_row` or `flex_column` with lines to create visual seperation such as for a table.
+
+```
+ui.divider(<DividerOrientation>, <Thickness: u32>, <Style>);
+
+ui.flex_column(None, |ui| {
+    ui.flex_row(None, |ui| {
+        ui.text("top_left".to_string(), None, None);
+        ui.divider(anchor_kit_core::element::DividerOrientation::Vertical, 10, None);
+        ui.text("top_right".to_string(), None, None);
+    });
+    ui.divider(anchor_kit_core::element::DividerOrientation::Horizontal, 10, None);
+    ui.flex_row(None, |ui| {
+        ui.text("bottom_left".to_string(), None, None);
+        ui.divider(anchor_kit_core::element::DividerOrientation::Vertical, 10, None);
+        ui.text("bottom_right".to_string(), None, None);
+    });
+});
+```
 
 **Overlay Example:**
 
