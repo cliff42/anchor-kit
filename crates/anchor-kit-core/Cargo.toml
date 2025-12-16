@@ -1,6 +1,6 @@
 [package]
 name = "anchor-kit-core"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "core UI primatives, elements and layout for anchor-kit"
 repository = "https://github.com/cliff42/anchor-kit"
