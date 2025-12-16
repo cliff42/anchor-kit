@@ -58,45 +58,36 @@ Aside from aiming to create a unique rendering approach to fill this gap in the 
 - [winit](https://docs.rs/winit/latest/winit/) (for windowed rendering)
 - [glyphon](https://github.com/grovesNL/glyphon) (text rendering in wgpu)
 
+### anchor-kit structure
+
+The core functionality behind anchor-kit is the simple API it provides for users to create GUIs using their existing graphics pipelines. In order to actually render the GUI created with anchor-kit, a `render_list` is created, which consists of anchor-kit primitives, which is then passed into the anchor-kit integration (anchor-kit-wgpu), which handles the actual rendering.
+
 <img width="775" height="303" alt="Screenshot 2025-12-15 at 3 10 16 AM" src="https://github.com/user-attachments/assets/c093b2d2-a1ef-4a10-a635-8248fb4b5804" />
 
+In anchor-kit, users create their GUI structures (made up of anchor-kit elements) through the use of nested closure functions as parameters to the anchor-kit-core `generate_frame` function. This function takes the user input tree of element closures and converts it into renderable primitives, which are eventually sent to the GPU for actual rendering.
 
-The core functionality behind anchor-kit is the simple API it provides for users to create GUIs using their existing graphics pipelines. In order to actually render the GUI created with anchor-kit, a `render_list` is created, which consists of anchor-kit primitives, which is then passed into the anchor-kit integration (for now, just wgpu), which handles the actual rendering.
+During the `generate_frame` function, anchor-kit runs elements through its multi-pass layout system, which is the core logic behind our powerful responsive layouts.
 
-This makes creating GUIs with anchor-kit relatively simple, and it essentially boils down to two new additions to the user’s existing pipeline:
+1. **Measure pass**: Determines each element's size based on its style, content, and any child elements passed into it
+2. **Layout pass**: Uses the measured sizes from the measure pass to determine the absolute position of each element in the frame
+3. **Render pass**: Converts all of the user-defined elements into core renderable primitives which act as the actual data interpreted by the end graphics API
 
-Example:
-
-```
-... (wgpu/ winit setup)
+Core `generate_frame` structure:
 
 let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
-    ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
-        ui.image(
-            self.image_id,
-            Some(Style {
-                width: anchor_kit_core::style::SizingPolicy::Fixed(400),
-                height: anchor_kit_core::style::SizingPolicy::Fixed(500),
-                ..Default::default()
-            }),
-        );
-    });
+ui.anchor(AnchorPosition::MiddleCenter, Some(Style{...}), |ui| {
+            	ui.pill(..., |ui| {
+			ui.text(“hello world!”, …);
+		});
+		…
+            });
+	…
 });
 
-anchor_kit_wgpu_renderer.render(
-            &self.device,
-            &self.queue,
-            &mut render_pass,
-            &screen_info,
-            &render_list,
-);
 
-... additional rendering if required
+### Styling
 
-self.queue.submit(iter::once(encoder.finish())); // submit everything to be rendered by wgpu (including the anchor-kit pass)
-```
-
-**Styling:**
+anchor-kit exposes optional styling attributes that are passed in during element creation in the `generate_frame()` function. Our styling system was made to resemble a similar structure that exists with CSS styling. The use of these attributes allows for significant visualization changes with just a few lines of additional code passed in by the user.  
 
 ```
 pub struct Style {
