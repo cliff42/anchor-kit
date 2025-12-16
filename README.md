@@ -58,45 +58,52 @@ Aside from aiming to create a unique rendering approach to fill this gap in the 
 - [winit](https://docs.rs/winit/latest/winit/) (for windowed rendering)
 - [glyphon](https://github.com/grovesNL/glyphon) (text rendering in wgpu)
 
+### anchor-kit structure
+
+The core functionality behind anchor-kit is the simple API it provides for users to create GUIs using their existing graphics pipelines. In order to actually render the GUI created with anchor-kit, a `render_list` is created, which consists of anchor-kit primitives, which is then passed into the anchor-kit integration (anchor-kit-wgpu), which handles the actual rendering.
+
 <img width="775" height="303" alt="Screenshot 2025-12-15 at 3 10 16 AM" src="https://github.com/user-attachments/assets/c093b2d2-a1ef-4a10-a635-8248fb4b5804" />
 
+**Shaders**
 
-The core functionality behind anchor-kit is the simple API it provides for users to create GUIs using their existing graphics pipelines. In order to actually render the GUI created with anchor-kit, a `render_list` is created, which consists of anchor-kit primitives, which is then passed into the anchor-kit integration (for now, just wgpu), which handles the actual rendering.
+Although they aren't written directly in Rust (they are written in [wgsl](https://www.w3.org/TR/WGSL/)), anchor-kit's shaders make up a core portion of the anchor-kit-wgpu integration package. These shaders are responsible for handing off the vertices created CPU-side to the GPU for actual rendering. Without these shaders enabling GPU-accelerated rendering, anchor-kit would be quite inefficient, and not suitable for real-world applications.
 
-This makes creating GUIs with anchor-kit relatively simple, and it essentially boils down to two new additions to the user’s existing pipeline:
+_Vertex shader_:
 
-Example:
+The vertex shader implemented in anchor-kit is quite simple. It simply converts our screen-space coordinates into [normalized device coordinates](https://learnopengl.com/Getting-started/Coordinate-Systems), and then flips the y-axis for rendering on the GPU. 
 
-```
-... (wgpu/ winit setup)
+_Fragment shaders_:
+
+The fragment shaders are more complex and interesting, but still relatively simple compared to what can be done with advanced shader implementations. anchor-kit uses two fragment shaders, one for image rendering, which takes in a texture bind group from our image rendering pipeline, and a simpler shader, which has no texture bind grou,p which runs through our main rendering pipeline, and is used for non-textured elements such as pills.
+
+Both of our fragment shaders implement [signed distance functions](https://en.wikipedia.org/wiki/Signed_distance_function) to enable borders and corner rounding, as well as simple anti-aliasing to smooth out element corners. Our fragment shaders were heavily inspired by the wonderful [open source tutorial library](https://iquilezles.org/articles/distfunctions2d/) created by Inigo Quilez.
+
+**Layout system:**
+
+In anchor-kit, users create their GUI structures (made up of anchor-kit elements) through the use of nested closure functions as parameters to the anchor-kit-core `generate_frame` function. This function takes the user input tree of element closures and converts it into renderable primitives, which are eventually sent to the GPU for actual rendering.
+
+During the `generate_frame` function, anchor-kit runs elements through its multi-pass layout system, which is the core logic behind our powerful responsive layouts.
+
+1. **Measure pass**: Determines each element's size based on its style, content, and any child elements passed into it
+2. **Layout pass**: Uses the measured sizes from the measure pass to determine the absolute position of each element in the frame
+3. **Render pass**: Converts all of the user-defined elements into core renderable primitives which act as the actual data interpreted by the end graphics API
+
+Core `generate_frame` structure:
 
 let render_list = self.ui_state.generate_frame(ui_frame_info, |ui| {
-    ui.anchor(AnchorPosition::BottomLeft, None, |ui| {
-        ui.image(
-            self.image_id,
-            Some(Style {
-                width: anchor_kit_core::style::SizingPolicy::Fixed(400),
-                height: anchor_kit_core::style::SizingPolicy::Fixed(500),
-                ..Default::default()
-            }),
-        );
-    });
+ui.anchor(AnchorPosition::MiddleCenter, Some(Style{...}), |ui| {
+            	ui.pill(..., |ui| {
+			ui.text(“hello world!”, …);
+		});
+		…
+            });
+	…
 });
 
-anchor_kit_wgpu_renderer.render(
-            &self.device,
-            &self.queue,
-            &mut render_pass,
-            &screen_info,
-            &render_list,
-);
 
-... additional rendering if required
+### Styling
 
-self.queue.submit(iter::once(encoder.finish())); // submit everything to be rendered by wgpu (including the anchor-kit pass)
-```
-
-**Styling:**
+anchor-kit exposes optional styling attributes that are passed in during element creation in the `generate_frame()` function. Our styling system was made to resemble a similar structure that exists with CSS styling. The use of these attributes allows for significant visualization changes with just a few lines of additional code passed in by the user.  
 
 ```
 pub struct Style {
@@ -115,11 +122,16 @@ pub struct Style {
 }
 ```
 
+### Elements
+
 **Anchor positions:**
 
 <img width="573" height="449" alt="Screenshot 2025-12-15 at 2 39 05 AM" src="https://github.com/user-attachments/assets/4d92d418-e021-4fd9-a0be-926976b7ba01" />
 
 Above are the various options for `anchor` points within the grid system. Each section you make can be broken down into a 3x3, as shown.
+
+Anchors represent the core layout system for the anchor-kit library (as well as its namesake). All elements in the user-defined layout tree are positioned relative to these anchor positions. Any of the anchor positions can also be nested within each other, allowing for enormous flexibility when aligning elements within anchor-kit GUIs. 
+
 ```
 ui.anchor(<AnchorPosition>, <Style>, |closure|)
 
@@ -131,7 +143,9 @@ ui.anchor(AnchorPosition::TopCenter, None, |ui| {
 
 <img width="575" height="453" alt="Screenshot 2025-12-15 at 2 39 28 AM" src="https://github.com/user-attachments/assets/d72fd696-9406-463f-82de-f27c69ccf88d" />
 
-Above are various examples of ways `flex_row`s and `flex_column`s can be arranged within an `anchor` point. On top is a `flex_column` rendering multiple rows, and in the middle is a `flex_row` rendering multiple columns. At the bottom is shown how `Style` options can affect positions of these elements within, specifically showing how `alignment_y` takes effect in a `flex_row`.
+Above are various examples of ways `flex_row`s and `flex_column`s can be arranged within an `anchor` point. On top is a `flex_column` rendering multiple rows, and in the middle is a `flex_row` rendering multiple columns. At the bottom is shown how `Style` options can affect positions of these elements within, specifically showing how `align_y` takes effect in a `flex_row`.
+
+Flex elements can justify their child elements to the start, middle and end of their layouts, and children elements themselves and use the `align` styling attributes to align themselves within the flex elements.
 
 ```
 ui.flex_row(<Style>, |closure|);
@@ -147,6 +161,8 @@ ui.flex_row(None, |ui| {
 <img width="569" height="448" alt="Screenshot 2025-12-15 at 2 40 16 AM" src="https://github.com/user-attachments/assets/e81c6ed6-09ad-4741-a849-b2529804f0af" />
 
 Above shows various permutations of the `pill` element, a basic shape provided within `anchor-kit`. This is a flexible element that is programmable with the `Style` parameter passed in. This element is modifiable by every option within the `Style` parameter.
+
+In anchor-kit's current state, pill elements act as the primary method to add backgrounds to other elements when not wanting to use a texture (with an image element). Similar to flex elements, pills can also contain children and use the `justify_<axis>` styling attributes to align their children. 
 
 ```
 ui.pill(<Style>, |closure|);
@@ -167,7 +183,9 @@ ui.pill(
 
 <img width="570" height="448" alt="Screenshot 2025-12-15 at 2 40 34 AM" src="https://github.com/user-attachments/assets/d3f7fcb4-aabc-4737-8916-4e35c4ac32bf" />
 
-Above shows an example of rendering an image texture onto the window. Displaying these requires a few extra steps before they can be rendered onto a window. First, an image file has to be read in as bytes, and second, the image has to be processed using the `Renderer`s `get_image_id_from_btyes` functions. This generates a `Uuid` for the image that is then used to render it.
+Above shows an example of rendering an image texture onto the window. Displaying these requires a few extra steps before they can be rendered onto a window. First, an image file (texture) has to be read in as bytes, and second, the texture has to be registered using the `Renderer`s `get_image_id_from_btyes` functions. This generates a `Uuid` for the image that is then used to render it.
+
+Behind the scenes, image elements also rely on `rectangle` primitives, which means users can also add styling to images similar to pills (border radius etc.).
 
 ```
 ui.image(<Image: Uuid>, <Style>);
@@ -192,6 +210,8 @@ ui.image(
 <img width="573" height="448" alt="Screenshot 2025-12-15 at 2 41 00 AM" src="https://github.com/user-attachments/assets/c239dda8-bb34-476f-b426-8e4b65a333f2" />
 
 Above shows an example of `text` rendering with various `TextStyle`s applied to them. `TextStyle` is a distinct styling parameter from `Style` that is exclusively used for formatting how text will be output, with various font options and a colour setting.
+
+For the scope of this project, we chose to use the [glyphon](https://github.com/grovesNL/glyphon) library to handle text rendering rather than creating our own glyph system. This was primarily done to save time and avoid repeating work that has already been done, since creating a custom glyph/ text rendering engine from scratch is quite complicated. [glyphon](https://github.com/grovesNL/glyphon) has a variety of features that are well-suited to anchor-kit, and it natively integrates with wgpu, which fits nicely into our `anchor-kit-wgpu` integration.  
 
 ```
 pub struct TextStyle {
@@ -296,6 +316,7 @@ ui.anchor(AnchorPosition::MiddleCenter, None, |ui| {
 
 **Overlay Example:**
 
+Putting it all together, here is an example of an overlay data visualization with dynamic sample data representing metrics from a race car. This example demonstrates various anchor-kit elements and their styling, as well as their responsive layouts and automatic resizing.
 
 https://github.com/user-attachments/assets/815acfab-0847-4df1-992b-09b16ae6940d
 
