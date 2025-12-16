@@ -115,11 +115,16 @@ pub struct Style {
 }
 ```
 
+### Elements
+
 **Anchor positions:**
 
 <img width="573" height="449" alt="Screenshot 2025-12-15 at 2 39 05 AM" src="https://github.com/user-attachments/assets/4d92d418-e021-4fd9-a0be-926976b7ba01" />
 
 Above are the various options for `anchor` points within the grid system. Each section you make can be broken down into a 3x3, as shown.
+
+Anchors represent the core layout system for the anchor-kit library (as well as its namesake). All elements in the user-defined layout tree are positioned relative to these anchor positions. Any of the anchor positions can also be nested within each other, allowing for enormous flexibility when aligning elements within anchor-kit GUIs. 
+
 ```
 ui.anchor(<AnchorPosition>, <Style>, |closure|)
 
@@ -296,6 +301,7 @@ ui.anchor(AnchorPosition::MiddleCenter, None, |ui| {
 
 **Overlay Example:**
 
+Putting it all together, here is an example of an overlay data visualization with dynamic sample data representing metrics from a race car. This example demonstrates various anchor-kit elements and their styling, as well as their responsive layouts and automatic resizing.
 
 https://github.com/user-attachments/assets/815acfab-0847-4df1-992b-09b16ae6940d
 
