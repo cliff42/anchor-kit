@@ -446,6 +446,15 @@ Use the examples above in the features section and in the demo/ presentation vid
 - help with examples
 
 **Piotr:**
+- made core functional part of the examples with winit
+      - simple window rendering
+      - transparent window rendering (overlay)
+      - continuous window updates to UI for changing data
+      - using wgpu rendering pipeline with winit
+          - initial rendering pass for window canvas
+          - use second rendering pass from anchor-kit to add elements ontop
+      - window re-sizing and re-scaling
+- found and reported bugs while working on examples
 
 ## Lessons Learned
 
